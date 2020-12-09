@@ -18,6 +18,7 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.DecodedJWT;
 
+import raf.petrovicpleskonjic.rafairlinesuserservice.repositories.AdministratorRepository;
 import raf.petrovicpleskonjic.rafairlinesuserservice.repositories.UserRepository;
 
 import static raf.petrovicpleskonjic.rafairlinesuserservice.security.SecurityConstants.*;
@@ -25,11 +26,13 @@ import static raf.petrovicpleskonjic.rafairlinesuserservice.security.SecurityCon
 public class JWTAuthorizationFilter extends BasicAuthenticationFilter {
 
 	private UserRepository userRepo;
+	private AdministratorRepository adminRepo;
 
 	@Autowired
-	public JWTAuthorizationFilter(AuthenticationManager authManager, UserRepository userRepo) {
+	public JWTAuthorizationFilter(AuthenticationManager authManager, UserRepository userRepo, AdministratorRepository adminRepo) {
 		super(authManager);
 		this.userRepo = userRepo;
+		this.adminRepo = adminRepo;
 	}
 
 	@Override
@@ -50,13 +53,12 @@ public class JWTAuthorizationFilter extends BasicAuthenticationFilter {
 			DecodedJWT jwt = JWT.require(Algorithm.HMAC512(SECRET.getBytes())).build()
 					.verify(token.replace(TOKEN_PREFIX, ""));
 
-			String email = jwt.getSubject();
-
-			if (userRepo.existsByEmail(email) == false)
+			String username = jwt.getSubject();
+			if (username == null)
 				return null;
 
-			if (email != null)
-				return new UsernamePasswordAuthenticationToken(email, null, new ArrayList<>());
+			if (userRepo.existsByEmail(username) || adminRepo.existsByUsername(username))
+				return new UsernamePasswordAuthenticationToken(username, null, new ArrayList<>());	
 			
 			return null;
 		}

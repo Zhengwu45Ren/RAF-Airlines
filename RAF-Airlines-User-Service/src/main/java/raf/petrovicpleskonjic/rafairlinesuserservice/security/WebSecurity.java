@@ -14,6 +14,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import raf.petrovicpleskonjic.rafairlinesuserservice.repositories.AdministratorRepository;
 import raf.petrovicpleskonjic.rafairlinesuserservice.repositories.UserRepository;
 import static raf.petrovicpleskonjic.rafairlinesuserservice.security.SecurityConstants.*;
 
@@ -23,12 +24,14 @@ public class WebSecurity extends WebSecurityConfigurerAdapter {
 	private CustomAuthenticationProvider customAuthenticationProvider;
 	private BCryptPasswordEncoder encoder;
 	private UserRepository userRepo;
+	private AdministratorRepository adminRepo;
 
 	@Autowired
-	public WebSecurity(CustomAuthenticationProvider customAuthenticationProvider, UserRepository userRepo,
+	public WebSecurity(CustomAuthenticationProvider customAuthenticationProvider, UserRepository userRepo, AdministratorRepository adminRepo,
 			BCryptPasswordEncoder encoder) {
 		this.customAuthenticationProvider = customAuthenticationProvider;
 		this.userRepo = userRepo;
+		this.adminRepo = adminRepo;
 		this.encoder = encoder;
 	}
 
@@ -37,7 +40,7 @@ public class WebSecurity extends WebSecurityConfigurerAdapter {
 
 		http.cors().and().csrf().disable().authorizeRequests().antMatchers(LOGIN_PATH, REGISTRATION_PATH).permitAll()
 				.anyRequest().authenticated().and().addFilter(new JWTAuthenticationFilter(authenticationManager()))
-				.addFilter(new JWTAuthorizationFilter(authenticationManager(), userRepo)).sessionManagement()
+				.addFilter(new JWTAuthorizationFilter(authenticationManager(), userRepo, adminRepo)).sessionManagement()
 				.sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 	}
 

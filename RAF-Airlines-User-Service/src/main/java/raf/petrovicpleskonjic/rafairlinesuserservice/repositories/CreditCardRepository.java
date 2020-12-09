@@ -11,6 +11,6 @@ import raf.petrovicpleskonjic.rafairlinesuserservice.models.User;
 @Repository
 public interface CreditCardRepository extends JpaRepository<CreditCard, String> {
 	
-	List<CreditCard> findByUser(User user);
+	List<CreditCard> findByOwner(User owner);
 
 }

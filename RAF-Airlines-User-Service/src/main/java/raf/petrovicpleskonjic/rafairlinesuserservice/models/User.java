@@ -1,10 +1,13 @@
 package raf.petrovicpleskonjic.rafairlinesuserservice.models;
 
+import java.util.List;
+
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 
 @Entity
 public class User {
@@ -21,6 +24,9 @@ public class User {
 	
 	@ManyToOne
 	private Tier tier;
+	
+	@OneToMany(mappedBy = "owner")
+	private List<CreditCard> creditCards;
 	
 	public User() {}
 	

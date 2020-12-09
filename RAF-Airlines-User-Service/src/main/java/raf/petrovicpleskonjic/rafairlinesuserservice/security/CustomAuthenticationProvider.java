@@ -11,34 +11,44 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
+import raf.petrovicpleskonjic.rafairlinesuserservice.models.Administrator;
 import raf.petrovicpleskonjic.rafairlinesuserservice.models.User;
+import raf.petrovicpleskonjic.rafairlinesuserservice.repositories.AdministratorRepository;
 import raf.petrovicpleskonjic.rafairlinesuserservice.repositories.UserRepository;
 
 @Component
 public class CustomAuthenticationProvider implements AuthenticationProvider {
 
 	private PasswordEncoder encoder;
+	
 	private UserRepository userRepo;
+	private AdministratorRepository adminRepo;
 
 	@Autowired
-	public CustomAuthenticationProvider(UserRepository userRepo) {
-		super();
+	public CustomAuthenticationProvider(UserRepository userRepo, AdministratorRepository adminRepo) {
 		this.userRepo = userRepo;
+		this.adminRepo = adminRepo;
 	}
 
 	@Override
 	public Authentication authenticate(Authentication auth) throws AuthenticationException {
-		String email = auth.getName();
+		String username = auth.getName();
 		String password = auth.getCredentials().toString();
-
-		User user = userRepo.findByEmail(email);
-
-		if (user == null) {
-			throw new BadCredentialsException("Authentication failed");
+		
+		Administrator admin = adminRepo.findByUsername(username);
+		if (admin != null) {
+			if (encoder.matches(password, admin.getPassword()))
+				return new UsernamePasswordAuthenticationToken(username, password, new ArrayList<>());
+			else
+				throw new BadCredentialsException("Authentication failed");
 		}
 
-		if (encoder.matches(password, user.getPassword())) {
-			return new UsernamePasswordAuthenticationToken(email, password, new ArrayList<>());
+		User user = userRepo.findByEmail(username);
+		if (user != null) {
+			if (encoder.matches(password, user.getPassword()))
+				return new UsernamePasswordAuthenticationToken(username, password, new ArrayList<>());
+			else
+				throw new BadCredentialsException("Authentication failed");
 		}
 
 		throw new BadCredentialsException("Authentication failed");

@@ -9,4 +9,6 @@ import raf.petrovicpleskonjic.rafairlinesuserservice.models.Administrator;
 public interface AdministratorRepository extends JpaRepository<Administrator, Long> {
 	
 	Administrator findByUsername(String username);
+	
+	boolean existsByUsername(String username);
 }
