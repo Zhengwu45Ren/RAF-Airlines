@@ -1,4 +1,4 @@
-package raf.petrovicpleskonjic.rafairlinesuserservice.forms.requests;
+package raf.petrovicpleskonjic.rafairlinesuserservice.forms.requests.user;
 
 public class LoginRequest {
 	

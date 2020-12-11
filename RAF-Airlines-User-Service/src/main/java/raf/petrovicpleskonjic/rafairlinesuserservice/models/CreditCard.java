@@ -10,14 +10,14 @@ public class CreditCard {
 	@Id
 	private String number;
 	
-	private int ccv;
+	private Integer ccv;
 	
 	@ManyToOne
 	private User owner;
 	
 	public CreditCard() {}
 
-	public CreditCard(String number, int ccv, User owner) {
+	public CreditCard(String number, Integer ccv, User owner) {
 		this.number = number;
 		this.ccv = ccv;
 		this.owner = owner;
@@ -31,11 +31,11 @@ public class CreditCard {
 		this.number = number;
 	}
 
-	public int getCcv() {
+	public Integer getCcv() {
 		return ccv;
 	}
 
-	public void setCcv(int ccv) {
+	public void setCcv(Integer ccv) {
 		this.ccv = ccv;
 	}
 

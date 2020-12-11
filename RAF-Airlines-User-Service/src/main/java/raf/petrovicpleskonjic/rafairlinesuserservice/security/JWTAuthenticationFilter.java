@@ -16,7 +16,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import com.auth0.jwt.JWT;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import raf.petrovicpleskonjic.rafairlinesuserservice.forms.requests.LoginRequest;
+import raf.petrovicpleskonjic.rafairlinesuserservice.forms.requests.user.LoginRequest;
 
 import static com.auth0.jwt.algorithms.Algorithm.HMAC512;
 

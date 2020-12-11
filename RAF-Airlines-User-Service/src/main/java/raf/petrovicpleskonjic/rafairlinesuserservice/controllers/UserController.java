@@ -11,21 +11,21 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import raf.petrovicpleskonjic.rafairlinesuserservice.forms.requests.RegistrationRequest;
+import raf.petrovicpleskonjic.rafairlinesuserservice.forms.requests.user.RegistrationRequest;
 import raf.petrovicpleskonjic.rafairlinesuserservice.models.User;
 import raf.petrovicpleskonjic.rafairlinesuserservice.repositories.AdministratorRepository;
 import raf.petrovicpleskonjic.rafairlinesuserservice.repositories.UserRepository;
 
 @RestController
 @RequestMapping("")
-public class Controller {
+public class UserController {
 
 	private BCryptPasswordEncoder encoder;
 	private UserRepository userRepo;
 	private AdministratorRepository adminRepo;
 
 	@Autowired
-	public Controller(BCryptPasswordEncoder encoder, UserRepository userRepo, AdministratorRepository adminRepo) {
+	public UserController(BCryptPasswordEncoder encoder, UserRepository userRepo, AdministratorRepository adminRepo) {
 		this.encoder = encoder;
 		this.userRepo = userRepo;
 		this.adminRepo = adminRepo;
