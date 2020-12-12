@@ -4,6 +4,8 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Entity
 public class CreditCard {
 
@@ -13,6 +15,7 @@ public class CreditCard {
 	private Integer ccv;
 	
 	@ManyToOne
+	@JsonIgnore
 	private User owner;
 	
 	public CreditCard() {}

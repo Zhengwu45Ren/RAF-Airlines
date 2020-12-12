@@ -10,6 +10,8 @@ import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Entity
 public class User {
 
@@ -17,8 +19,12 @@ public class User {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private long userId;
 
+	private Integer miles;
+	
 	private String name;
 	private String surname;
+		
+	@JsonIgnore
 	private String password;
 	
 	@Column(unique = true)
@@ -35,7 +41,8 @@ public class User {
 	
 	public User() {}
 	
-	public User(String name, String surname, String email, String password, String passport) {
+	public User(Integer miles, String name, String surname, String email, String password, String passport) {
+		this.miles = miles;
 		this.name = name;
 		this.surname = surname;
 		this.email = email;
@@ -49,6 +56,14 @@ public class User {
 	
 	public void setUserId(long userId) {
 		this.userId = userId;
+	}
+	
+	public Integer getMiles() {
+		return miles;
+	}
+	
+	public void setMiles(Integer miles) {
+		this.miles = miles;
 	}
 	
 	public String getName() {
