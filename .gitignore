@@ -1,6 +1,11 @@
 # Compiled class file
 *.class
 
+HELP.md
+target/
+!**/.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
 # Log file
 *.log
 
@@ -30,3 +35,5 @@ hs_err_pid*
 
 **/.DS_Store
 .DS_Store
+RAF-Airlines-Flight-Service/.classpath
+RAF-Airlines-User-Service/.classpath
