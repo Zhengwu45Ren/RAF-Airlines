@@ -9,10 +9,10 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>raf.petrovic-pleskonjic</groupId>
-	<artifactId>raf-airlines-flight-service</artifactId>
+	<artifactId>raf-airlines-ticket-service</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>RAF Airlines flight service</name>
-	<description>Flight service for RAF Airlines responsible for managing and administrating flights</description>
+	<name>RAF Airlines ticket service</name>
+	<description>Ticket service for RAF Airlines responsible for selling and managing tickets</description>
 
 	<properties>
 		<java.version>11</java.version>
