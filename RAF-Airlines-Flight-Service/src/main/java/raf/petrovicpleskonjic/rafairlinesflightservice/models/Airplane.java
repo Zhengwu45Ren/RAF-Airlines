@@ -9,6 +9,8 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Entity
 public class Airplane {
 
@@ -20,7 +22,8 @@ public class Airplane {
 	
 	private Integer capacity;
 	
-	@OneToMany(fetch = FetchType.EAGER)
+	@OneToMany(mappedBy = "airplane", fetch = FetchType.EAGER)
+	@JsonIgnore
 	private List<Flight> flights;
 	
 	public Airplane() {}
