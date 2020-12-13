@@ -10,11 +10,13 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import raf.petrovicpleskonjic.rafairlinesflightservice.forms.requests.NewAirplaneRequest;
 import raf.petrovicpleskonjic.rafairlinesflightservice.models.Airplane;
 import raf.petrovicpleskonjic.rafairlinesflightservice.repositories.AirplaneRepository;
 
+@RestController
 @RequestMapping("/airplane")
 public class AirplaneController {
 
