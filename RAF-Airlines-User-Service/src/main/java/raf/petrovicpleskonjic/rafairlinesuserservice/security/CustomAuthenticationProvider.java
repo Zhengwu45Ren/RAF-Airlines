@@ -1,6 +1,7 @@
 package raf.petrovicpleskonjic.rafairlinesuserservice.security;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -37,7 +38,7 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
 		
 		Administrator admin = adminRepo.findByUsername(username);
 		if (admin != null) {
-			if (encoder.matches(password, admin.getPassword()))
+			if (password.equals(admin.getPassword()))
 				return new UsernamePasswordAuthenticationToken(username, password, new ArrayList<>());
 			else
 				throw new BadCredentialsException("Authentication failed");

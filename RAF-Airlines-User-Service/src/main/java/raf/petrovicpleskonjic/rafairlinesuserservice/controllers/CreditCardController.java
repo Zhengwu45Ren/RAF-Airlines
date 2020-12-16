@@ -42,7 +42,7 @@ public class CreditCardController {
 	public ResponseEntity<CreditCard> addCreditCard(@RequestBody NewCreditCardRequest request, @RequestHeader(value = HEADER_STRING) String token) {
 
 		try {			
-			User user = userRepo.findByEmail(UtilityMethods.getUserFromToken(token));
+			User user = userRepo.findByEmail(UtilityMethods.getUsernameFromToken(token));
 
 			if (user == null || request.getNumber() == null || request.getCcv() == null || creditCardRepo.existsById(request.getNumber()))
 				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
@@ -61,7 +61,7 @@ public class CreditCardController {
 	public ResponseEntity<Void> removeCreditCard(@RequestParam String number, @RequestHeader(value = HEADER_STRING) String token) {
 
 		try {			
-			User user = userRepo.findByEmail(UtilityMethods.getUserFromToken(token));
+			User user = userRepo.findByEmail(UtilityMethods.getUsernameFromToken(token));
 
 			if (user == null)
 				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
@@ -83,7 +83,7 @@ public class CreditCardController {
 	public ResponseEntity<List<CreditCard>> getCreditCards(@RequestHeader(value = HEADER_STRING) String token) {
 
 		try {			
-			User user = userRepo.findByEmail(UtilityMethods.getUserFromToken(token));
+			User user = userRepo.findByEmail(UtilityMethods.getUsernameFromToken(token));
 
 			if (user == null)
 				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);

@@ -2,6 +2,7 @@ package raf.petrovicpleskonjic.rafairlinesuserservice.security;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -11,6 +12,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
@@ -57,9 +60,14 @@ public class JWTAuthorizationFilter extends BasicAuthenticationFilter {
 			if (username == null)
 				return null;
 
-			if (userRepo.existsByEmail(username) || adminRepo.existsByUsername(username))
+			if (userRepo.existsByEmail(username))
 				return new UsernamePasswordAuthenticationToken(username, null, new ArrayList<>());	
-			
+			else if (adminRepo.existsByUsername(username)) {
+				List<GrantedAuthority> authorities = new ArrayList<GrantedAuthority>();
+				authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
+				return new UsernamePasswordAuthenticationToken(username, null, authorities);
+			}
+				
 			return null;
 		}
 		return null;

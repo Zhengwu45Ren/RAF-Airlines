@@ -8,7 +8,7 @@ import static raf.petrovicpleskonjic.rafairlinesuserservice.security.SecurityCon
 
 public class UtilityMethods {
 
-	public static String getUserFromToken(String token) {
+	public static String getUsernameFromToken(String token) {
 		return JWT.require(Algorithm.HMAC512(SECRET.getBytes())).build()
 				.verify(token.replace(TOKEN_PREFIX, "")).getSubject();
 	}
