@@ -9,6 +9,7 @@ import org.springframework.web.client.RestTemplate;
 public class UtilityMethods {
 	
 	public static final String USER_SERVICE_URL = "http://localhost:8080/";
+	public static final String FLIGHT_SERVICE_URL = "http://localhost:8081/";
 	
 	public static <T> ResponseEntity<T> sendGet(Class<T> responseType, String url, String token) {
 

@@ -3,6 +3,7 @@ package raf.petrovicpleskonjic.rafairlinesuserservice.controllers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -14,7 +15,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import raf.petrovicpleskonjic.rafairlinesuserservice.UtilityMethods;
 import raf.petrovicpleskonjic.rafairlinesuserservice.forms.requests.credit_card.NewCreditCardRequest;
+import raf.petrovicpleskonjic.rafairlinesuserservice.forms.requests.credit_card.PaymentRequest;
 import raf.petrovicpleskonjic.rafairlinesuserservice.models.CreditCard;
+import raf.petrovicpleskonjic.rafairlinesuserservice.models.Tier;
 import raf.petrovicpleskonjic.rafairlinesuserservice.models.User;
 import raf.petrovicpleskonjic.rafairlinesuserservice.repositories.CreditCardRepository;
 import raf.petrovicpleskonjic.rafairlinesuserservice.repositories.UserRepository;
@@ -96,4 +99,31 @@ public class CreditCardController {
 			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 		}
 	}
+	
+	@PostMapping("/make-flight-payment")
+	public ResponseEntity<Boolean> makeFlightPayment(Authentication authentication, @RequestBody PaymentRequest request) {
+		try {
+			User user = userRepo.findByEmail(authentication.getName());
+			if (user == null)
+				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+			
+			Optional<CreditCard> creditCard = creditCardRepo.findById(request.getCreditCardNumber());
+			if (!creditCard.isPresent() || creditCard.get().getOwner().getUserId() != user.getUserId())
+				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+			
+			Tier tier = user.getTier();
+			
+			Float totalAmountToPay = request.getAmount() - (tier.getSalePercentage() / 100 * request.getAmount());
+			System.out.println("Transaction: " + totalAmountToPay);
+			
+			user.setMiles(user.getMiles() + request.getMiles());
+			userRepo.save(user);
+			
+			return new ResponseEntity<>(true, HttpStatus.BAD_REQUEST);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		}
+	}
+	
 }

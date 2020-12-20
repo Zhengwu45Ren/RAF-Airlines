@@ -18,6 +18,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import raf.petrovicpleskonjic.rafairlinesflightservice.forms.requests.FindFlightRequest;
 import raf.petrovicpleskonjic.rafairlinesflightservice.forms.requests.NewFlightRequest;
+import raf.petrovicpleskonjic.rafairlinesflightservice.forms.responses.FlightResponse;
 import raf.petrovicpleskonjic.rafairlinesflightservice.forms.responses.UserProfileResponse;
 import raf.petrovicpleskonjic.rafairlinesflightservice.models.Airplane;
 import raf.petrovicpleskonjic.rafairlinesflightservice.models.Flight;
@@ -45,6 +46,24 @@ public class FlightController {
 			List<Flight> flights = flightRepo.getAvailableFlights();
 
 			return new ResponseEntity<>(flights, HttpStatus.ACCEPTED);
+		} catch (Exception e) {
+			e.printStackTrace();
+
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		}
+	}
+
+	@GetMapping("/get-flight-by-id")
+	public ResponseEntity<FlightResponse> getFlightById(@RequestParam long flightId) {
+		try {
+			Optional<Flight> flight = flightRepo.findById(flightId);
+			
+			if (!flight.isPresent()) 
+				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+
+			return new ResponseEntity<>(
+					new FlightResponse(flightId, flight.get().getDistance(), flight.get().getPrice()),
+					HttpStatus.ACCEPTED);
 		} catch (Exception e) {
 			e.printStackTrace();
 
@@ -108,7 +127,7 @@ public class FlightController {
 
 			if (!flight.get().getPassengers().isEmpty()) {
 				for (Passenger passenger : flight.get().getPassengers()) {
-					
+
 					UriComponentsBuilder builder = UriComponentsBuilder
 							.fromHttpUrl(UtilityMethods.USER_SERVICE_URL + "profile-by-id")
 							.queryParam("userId", passenger.getPassengerId());

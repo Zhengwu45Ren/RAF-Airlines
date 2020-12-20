@@ -26,6 +26,8 @@ public class Ticket {
 	@CreatedDate
 	private Date dayBought;
 	
+	private boolean canceled;
+	
 	public Ticket() {}
 
 	public Ticket(Passenger passenger, Flight flight) {
@@ -55,5 +57,13 @@ public class Ticket {
 
 	public Date getDayBought() {
 		return dayBought;
+	}
+
+	public boolean isCanceled() {
+		return canceled;
+	}
+
+	public void setCanceled(boolean canceled) {
+		this.canceled = canceled;
 	}
 }

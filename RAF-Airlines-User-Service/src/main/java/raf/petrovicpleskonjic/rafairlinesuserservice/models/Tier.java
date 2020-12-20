@@ -14,13 +14,16 @@ public class Tier {
 	
 	private String name;
 	
+	private Float salePercentage;
+	
 	private int threshold;
 	
 	public Tier() {}
 
-	public Tier(String name, int threshold) {
+	public Tier(String name, int threshold, Float salePercentage) {
 		this.name = name;
 		this.threshold = threshold;
+		this.salePercentage = salePercentage;
 	}
 
 	public long getTierId() {
@@ -45,5 +48,13 @@ public class Tier {
 
 	public void setThreshold(int threshold) {
 		this.threshold = threshold;
+	}
+	
+	public Float getSalePercentage() {
+		return salePercentage;
+	}
+	
+	public void setSalePercentage(Float salePercentage) {
+		this.salePercentage = salePercentage;
 	}
 }
