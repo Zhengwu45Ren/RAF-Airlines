@@ -2,6 +2,8 @@ package raf.petrovicpleskonjic.rafairlinesuserservice.controllers;
 
 import static raf.petrovicpleskonjic.rafairlinesuserservice.security.SecurityConstants.HEADER_STRING;
 
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,12 +16,12 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import raf.petrovicpleskonjic.rafairlinesuserservice.UtilityMethods;
 import raf.petrovicpleskonjic.rafairlinesuserservice.forms.requests.user.RegistrationRequest;
 import raf.petrovicpleskonjic.rafairlinesuserservice.forms.requests.user.UpdateRequest;
-import raf.petrovicpleskonjic.rafairlinesuserservice.forms.responses.AdminCheckResponse;
 import raf.petrovicpleskonjic.rafairlinesuserservice.models.User;
 import raf.petrovicpleskonjic.rafairlinesuserservice.repositories.AdministratorRepository;
 import raf.petrovicpleskonjic.rafairlinesuserservice.repositories.UserRepository;
@@ -37,15 +39,52 @@ public class UserController {
 		this.userRepo = userRepo;
 	}
 
-	@GetMapping("/profile")
-	public ResponseEntity<AdminCheckResponse> getProfile(Authentication authentication) {
+	@GetMapping("/admin-verification")
+	public ResponseEntity<Boolean> getProfile(Authentication authentication) {
 		boolean isAdmin = false;
 		for (GrantedAuthority a : authentication.getAuthorities())
 			if (a.getAuthority().equals("ROLE_ADMIN"))
 				isAdmin = true;
 		
-		return new ResponseEntity<>(new AdminCheckResponse(isAdmin), HttpStatus.ACCEPTED);			
+		return new ResponseEntity<>(isAdmin, HttpStatus.ACCEPTED);			
 
+	}
+	
+	@GetMapping("/profile-by-id")
+	public ResponseEntity<User> getUserById(Authentication authentication, @RequestParam long userId) {
+		try {
+			boolean isAdmin = false;
+			for (GrantedAuthority a : authentication.getAuthorities())
+				if (a.getAuthority().equals("ROLE_ADMIN"))
+					isAdmin = true;
+			
+			if (!isAdmin)
+				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+			
+			Optional<User> user = userRepo.findById(userId);
+			if (!user.isPresent())
+				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+
+			return new ResponseEntity<>(user.get(), HttpStatus.ACCEPTED);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		}
+	}
+	
+	@GetMapping("/my-profile")
+	public ResponseEntity<User> getUserById(Authentication authentication) {
+		try {		
+			User user = userRepo.findByEmail(authentication.getName());
+			
+			if (user == null)
+				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+
+			return new ResponseEntity<>(user, HttpStatus.ACCEPTED);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		}
 	}
 
 	@PostMapping("/register")
