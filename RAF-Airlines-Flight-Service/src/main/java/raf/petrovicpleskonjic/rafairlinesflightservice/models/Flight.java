@@ -29,6 +29,8 @@ public class Flight {
 	
 	private Float price;
 	
+	private Boolean canceled;
+	
 	public Flight() {}
 
 	public Flight(Airplane airplane, String startDestination, String endDestination, Integer distance, Float price) {
@@ -85,5 +87,13 @@ public class Flight {
 
 	public long getFlightId() {
 		return flightId;
+	}
+	
+	public Boolean getCanceled() {
+		return canceled;
+	}
+	
+	public void setCanceled(Boolean canceled) {
+		this.canceled = canceled;
 	}
 }

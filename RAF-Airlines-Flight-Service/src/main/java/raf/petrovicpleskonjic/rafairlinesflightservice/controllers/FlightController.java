@@ -3,9 +3,12 @@ package raf.petrovicpleskonjic.rafairlinesflightservice.controllers;
 import java.util.List;
 import java.util.Optional;
 
+import javax.jms.Queue;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.jms.core.JmsTemplate;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -14,12 +17,13 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.util.UriComponentsBuilder;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import raf.petrovicpleskonjic.rafairlinesflightservice.forms.requests.FindFlightRequest;
 import raf.petrovicpleskonjic.rafairlinesflightservice.forms.requests.NewFlightRequest;
 import raf.petrovicpleskonjic.rafairlinesflightservice.forms.responses.FlightResponse;
-import raf.petrovicpleskonjic.rafairlinesflightservice.forms.responses.UserProfileResponse;
+import raf.petrovicpleskonjic.rafairlinesflightservice.messages.FlightDeletedMessage;
 import raf.petrovicpleskonjic.rafairlinesflightservice.models.Airplane;
 import raf.petrovicpleskonjic.rafairlinesflightservice.models.Flight;
 import raf.petrovicpleskonjic.rafairlinesflightservice.models.Passenger;
@@ -33,6 +37,15 @@ public class FlightController {
 
 	private FlightRepository flightRepo;
 	private AirplaneRepository airplaneRepo;
+
+	@Autowired
+	JmsTemplate jmsTemplate;
+
+	@Autowired
+	Queue flightDeletedUserQueue;
+
+	@Autowired
+	Queue flightDeletedTicketQueue;
 
 	@Autowired
 	public FlightController(FlightRepository flightRepo, AirplaneRepository airplaneRepo) {
@@ -57,8 +70,8 @@ public class FlightController {
 	public ResponseEntity<FlightResponse> getFlightById(@RequestParam long flightId) {
 		try {
 			Optional<Flight> flight = flightRepo.findById(flightId);
-			
-			if (!flight.isPresent()) 
+
+			if (!flight.isPresent())
 				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 
 			return new ResponseEntity<>(
@@ -127,22 +140,33 @@ public class FlightController {
 
 			if (!flight.get().getPassengers().isEmpty()) {
 				for (Passenger passenger : flight.get().getPassengers()) {
+					
+					String message = new ObjectMapper()
+							.writeValueAsString(new FlightDeletedMessage(passenger.getPassengerId(),
+									flight.get().getFlightId(), flight.get().getDistance(), flight.get().getPrice()));
 
-					UriComponentsBuilder builder = UriComponentsBuilder
-							.fromHttpUrl(UtilityMethods.USER_SERVICE_URL + "profile-by-id")
-							.queryParam("userId", passenger.getPassengerId());
+					// Send information to User service:
+					jmsTemplate.convertAndSend(flightDeletedUserQueue, message);
+					
+					// Send information to Ticket service:
+					jmsTemplate.convertAndSend(flightDeletedTicketQueue, message);
 
-					ResponseEntity<UserProfileResponse> response = UtilityMethods.sendGet(UserProfileResponse.class,
-							builder.toUriString(), token);
-
-					String email = response.getBody().getEmail();
-
-					// TODO: Send email about returned funds
-					System.out.println("Money returned to " + email);
+//					UriComponentsBuilder builder = UriComponentsBuilder
+//							.fromHttpUrl(UtilityMethods.USER_SERVICE_URL + "profile-by-id")
+//							.queryParam("userId", passenger.getPassengerId());
+//
+//					ResponseEntity<UserProfileResponse> response = UtilityMethods.sendGet(UserProfileResponse.class,
+//							builder.toUriString(), token);
+//
+//					String email = response.getBody().getEmail();
+//
+//					// TODO: Send email about returned funds
+//					System.out.println("Money returned to " + email);
 				}
 			}
 
-			flightRepo.delete(flight.get());
+			flight.get().setCanceled(true);
+			flightRepo.save(flight.get());
 			return new ResponseEntity<>(HttpStatus.ACCEPTED);
 		} catch (Exception e) {
 			e.printStackTrace();

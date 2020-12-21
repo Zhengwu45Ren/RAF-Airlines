@@ -20,6 +20,7 @@ import raf.petrovicpleskonjic.rafairlinesuserservice.models.CreditCard;
 import raf.petrovicpleskonjic.rafairlinesuserservice.models.Tier;
 import raf.petrovicpleskonjic.rafairlinesuserservice.models.User;
 import raf.petrovicpleskonjic.rafairlinesuserservice.repositories.CreditCardRepository;
+import raf.petrovicpleskonjic.rafairlinesuserservice.repositories.TierRepository;
 import raf.petrovicpleskonjic.rafairlinesuserservice.repositories.UserRepository;
 
 import static raf.petrovicpleskonjic.rafairlinesuserservice.security.SecurityConstants.HEADER_STRING;
@@ -31,12 +32,13 @@ import java.util.Optional;
 @RequestMapping("/credit-card")
 public class CreditCardController {
 
+	private TierRepository tierRepo;
 	private UserRepository userRepo;
-	
 	private CreditCardRepository creditCardRepo;
 	
 	@Autowired
-	public CreditCardController(UserRepository userRepo, CreditCardRepository creditCardRepo) {
+	public CreditCardController(TierRepository tierRepo, UserRepository userRepo, CreditCardRepository creditCardRepo) {
+		this.tierRepo = tierRepo;
 		this.userRepo = userRepo;
 		this.creditCardRepo = creditCardRepo;
 	}
@@ -110,13 +112,21 @@ public class CreditCardController {
 			Optional<CreditCard> creditCard = creditCardRepo.findById(request.getCreditCardNumber());
 			if (!creditCard.isPresent() || creditCard.get().getOwner().getUserId() != user.getUserId())
 				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-			
-			Tier tier = user.getTier();
-			
-			Float totalAmountToPay = request.getAmount() - (tier.getSalePercentage() / 100 * request.getAmount());
+						
+			Float totalAmountToPay = request.getAmount() - (user.getTier().getSalePercentage() / 100 * request.getAmount());
 			System.out.println("Transaction: " + totalAmountToPay);
 			
 			user.setMiles(user.getMiles() + request.getMiles());
+			
+			List<Tier> tiers = tierRepo.findAll();
+			Tier newTier = null;
+			for (Tier tier : tiers) {
+				if (user.getMiles() > tier.getThreshold())
+					if (newTier == null || newTier.getThreshold() < tier.getThreshold())
+						newTier = tier;
+			}
+			user.setTier(newTier);
+			
 			userRepo.save(user);
 			
 			return new ResponseEntity<>(true, HttpStatus.BAD_REQUEST);
