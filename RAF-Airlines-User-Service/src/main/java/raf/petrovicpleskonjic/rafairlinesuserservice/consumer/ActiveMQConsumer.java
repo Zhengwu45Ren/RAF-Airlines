@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import raf.petrovicpleskonjic.rafairlinesuserservice.messages.FlightAssignedMessage;
 import raf.petrovicpleskonjic.rafairlinesuserservice.messages.FlightDeletedMessage;
 import raf.petrovicpleskonjic.rafairlinesuserservice.models.Tier;
 import raf.petrovicpleskonjic.rafairlinesuserservice.models.User;
@@ -28,7 +29,7 @@ public class ActiveMQConsumer {
 	}
 
 	@JmsListener(destination = "flight-deleted.user.queue")
-	public void consume(String jsonMessage) {
+	public void consumeFlightDeletion(String jsonMessage) {
 		try {
 			FlightDeletedMessage message = new ObjectMapper().readValue(jsonMessage, FlightDeletedMessage.class);
 			
@@ -54,6 +55,33 @@ public class ActiveMQConsumer {
 			System.out.println("Sending mail to: " + user.get().getEmail());
 		} catch (Exception e) {
 			e.printStackTrace();
+		}
+	}
+	
+	@JmsListener(destination = "flight-assigned.user.queue")
+	public void consumeFlightAssign(String jsonMessage) {
+		try {
+			FlightAssignedMessage message = new ObjectMapper().readValue(jsonMessage, FlightAssignedMessage.class);
+			
+			Optional<User> user = userRepo.findById(message.getPassengerId());
+			if (!user.isPresent())
+				return;
+			
+			user.get().setMiles(user.get().getMiles() + message.getDistance());
+			
+			List<Tier> tiers = tierRepo.findAll();
+			Tier newTier = null;
+			
+			for (Tier tier : tiers) {
+				if (user.get().getMiles() > tier.getThreshold())
+					if (newTier == null || newTier.getThreshold() < tier.getThreshold())
+						newTier = tier;
+			}
+			
+			user.get().setTier(newTier);
+			userRepo.save(user.get());
+		} catch (Exception e) {
+			
 		}
 	}
 }

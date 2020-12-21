@@ -9,7 +9,7 @@ import raf.petrovicpleskonjic.rafairlinesflightservice.models.Flight;
 
 public interface FlightRepository extends JpaRepository<Flight, Long> {
 
-	@Query("SELECT f FROM Flight f WHERE f.passengers.size < f.airplane.capacity")
+	@Query("SELECT f FROM Flight f WHERE f.passengers.size < f.airplane.capacity AND f.canceled is false")
 	List<Flight> getAvailableFlights();
 
 	@Query("SELECT f FROM Flight f WHERE lower(f.airplane.name) LIKE lower(:airplaneName) "

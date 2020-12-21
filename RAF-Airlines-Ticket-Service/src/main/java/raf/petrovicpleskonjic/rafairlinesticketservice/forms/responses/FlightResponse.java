@@ -8,12 +8,15 @@ public class FlightResponse {
 	
 	private Float price;
 	
+	private Boolean full;
+	
 	public FlightResponse() {}
 
-	public FlightResponse(long flightId, Integer distance, Float price) {
+	public FlightResponse(long flightId, Integer distance, Float price, Boolean full) {
 		this.flightId = flightId;
 		this.distance = distance;
 		this.price = price;
+		this.full = full;
 	}
 
 	public long getFlightId() {
@@ -38,5 +41,13 @@ public class FlightResponse {
 
 	public void setPrice(Float price) {
 		this.price = price;
-	}	
+	}
+	
+	public Boolean isFull() {
+		return full;
+	}
+	
+	public void setFull(Boolean full) {
+		this.full = full;
+	}
 }

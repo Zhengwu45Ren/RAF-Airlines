@@ -2,9 +2,12 @@ package raf.petrovicpleskonjic.rafairlinesticketservice.controllers;
 
 import java.util.List;
 
+import javax.jms.Queue;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.jms.core.JmsTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -13,10 +16,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import raf.petrovicpleskonjic.rafairlinesticketservice.forms.requests.NewTicketRequest;
-import raf.petrovicpleskonjic.rafairlinesticketservice.forms.requests.PaymentRequest;
+import raf.petrovicpleskonjic.rafairlinesticketservice.forms.requests.PassengerPurchaseRequest;
 import raf.petrovicpleskonjic.rafairlinesticketservice.forms.responses.FlightResponse;
 import raf.petrovicpleskonjic.rafairlinesticketservice.forms.responses.UserProfileResponse;
+import raf.petrovicpleskonjic.rafairlinesticketservice.forms.responses.UserPurchaseInformationResponse;
+import raf.petrovicpleskonjic.rafairlinesticketservice.messages.FlightAssignedMessage;
 import raf.petrovicpleskonjic.rafairlinesticketservice.models.Flight;
 import raf.petrovicpleskonjic.rafairlinesticketservice.models.Passenger;
 import raf.petrovicpleskonjic.rafairlinesticketservice.models.Ticket;
@@ -32,6 +39,15 @@ public class Controller {
 	private PassengerRepository passengerRepo;
 	private TicketRepository ticketRepo;
 	private FlightRepository flightRepo;
+	
+	@Autowired
+	JmsTemplate jmsTemplate;
+
+	@Autowired
+	Queue flightAssignedUserQueue;
+
+	@Autowired
+	Queue flightAssignedFlightQueue;
 
 	@Autowired
 	public Controller(PassengerRepository passengerRepo, TicketRepository ticketRepo, FlightRepository flightRepo) {
@@ -113,23 +129,34 @@ public class Controller {
 			ResponseEntity<FlightResponse> flightResponse = UtilityMethods.sendGet(FlightResponse.class,
 					flightRequestBuilder.toUriString(), token);
 
-			if (flightResponse.getBody() == null)
+			if (flightResponse.getBody() == null || flightResponse.getBody().isFull())
 				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 
-			PaymentRequest paymentRequest = new PaymentRequest(request.getCreditCardNumber(),
-					flightResponse.getBody().getPrice(), flightResponse.getBody().getDistance());
+			PassengerPurchaseRequest purchaseRequest = new PassengerPurchaseRequest(passenger.getPassengerId(),
+					request.getCreditCardNumber());
 
-			ResponseEntity<Boolean> paymentResponse = UtilityMethods.sendPost(Boolean.class,
-					UtilityMethods.USER_SERVICE_URL + "/credit-card/make-flight-payment", token, paymentRequest);
+			ResponseEntity<UserPurchaseInformationResponse> purchaseResponse = UtilityMethods.sendPost(
+					UserPurchaseInformationResponse.class,
+					UtilityMethods.USER_SERVICE_URL + "/credit-card/get-purchase-information", token, purchaseRequest);
 
-			if (!paymentResponse.getBody())
+			if (purchaseResponse.getBody() == null)
 				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+
+			Float totalAmountToPay = flightResponse.getBody().getPrice()
+					- (purchaseResponse.getBody().getSalePercentage() / 100 * flightResponse.getBody().getPrice());
+
+			System.out
+					.println("Requesting " + totalAmountToPay + " funds for passenger " + response.getBody().getName());
 
 			Flight flight = flightRepo.save(new Flight(flightResponse.getBody().getFlightId()));
 			Ticket ticket = ticketRepo.save(new Ticket(passenger, flight));
-			
-			// TODO: Dispatch flight to Flight service through message broker
 
+			String message = new ObjectMapper().writeValueAsString(new FlightAssignedMessage(passenger.getPassengerId(),
+					request.getFlightId(), flightResponse.getBody().getDistance()));
+
+			jmsTemplate.convertAndSend(flightAssignedFlightQueue, message);
+			jmsTemplate.convertAndSend(flightAssignedUserQueue, message);
+			
 			return new ResponseEntity<>(ticket, HttpStatus.ACCEPTED);
 		} catch (Exception e) {
 			e.printStackTrace();

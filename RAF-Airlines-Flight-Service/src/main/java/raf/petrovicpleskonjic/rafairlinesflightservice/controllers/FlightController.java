@@ -73,9 +73,11 @@ public class FlightController {
 
 			if (!flight.isPresent())
 				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+			
+			Boolean isFull = flight.get().getPassengers().size() >= flight.get().getAirplane().getCapacity();
 
 			return new ResponseEntity<>(
-					new FlightResponse(flightId, flight.get().getDistance(), flight.get().getPrice()),
+					new FlightResponse(flightId, flight.get().getDistance(), flight.get().getPrice(), isFull),
 					HttpStatus.ACCEPTED);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -150,18 +152,6 @@ public class FlightController {
 					
 					// Send information to Ticket service:
 					jmsTemplate.convertAndSend(flightDeletedTicketQueue, message);
-
-//					UriComponentsBuilder builder = UriComponentsBuilder
-//							.fromHttpUrl(UtilityMethods.USER_SERVICE_URL + "profile-by-id")
-//							.queryParam("userId", passenger.getPassengerId());
-//
-//					ResponseEntity<UserProfileResponse> response = UtilityMethods.sendGet(UserProfileResponse.class,
-//							builder.toUriString(), token);
-//
-//					String email = response.getBody().getEmail();
-//
-//					// TODO: Send email about returned funds
-//					System.out.println("Money returned to " + email);
 				}
 			}
 
