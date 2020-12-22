@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import raf.petrovicpleskonjic.rafairlinesuserservice.EmailService;
 import raf.petrovicpleskonjic.rafairlinesuserservice.UtilityMethods;
 import raf.petrovicpleskonjic.rafairlinesuserservice.forms.requests.user.RegistrationRequest;
 import raf.petrovicpleskonjic.rafairlinesuserservice.forms.requests.user.UpdateRequest;
@@ -30,11 +31,14 @@ import raf.petrovicpleskonjic.rafairlinesuserservice.repositories.UserRepository
 @RequestMapping("")
 public class UserController {
 
+	private EmailService emailService;
 	private BCryptPasswordEncoder encoder;
 	private UserRepository userRepo;
 
 	@Autowired
-	public UserController(BCryptPasswordEncoder encoder, UserRepository userRepo, AdministratorRepository adminRepo) {
+	public UserController(EmailService emailService, BCryptPasswordEncoder encoder, UserRepository userRepo,
+			AdministratorRepository adminRepo) {
+		this.emailService = emailService;
 		this.encoder = encoder;
 		this.userRepo = userRepo;
 	}
@@ -45,11 +49,11 @@ public class UserController {
 		for (GrantedAuthority a : authentication.getAuthorities())
 			if (a.getAuthority().equals("ROLE_ADMIN"))
 				isAdmin = true;
-		
-		return new ResponseEntity<>(isAdmin, HttpStatus.ACCEPTED);			
+
+		return new ResponseEntity<>(isAdmin, HttpStatus.ACCEPTED);
 
 	}
-	
+
 	@GetMapping("/profile-by-id")
 	public ResponseEntity<User> getUserById(Authentication authentication, @RequestParam long userId) {
 		try {
@@ -57,10 +61,10 @@ public class UserController {
 			for (GrantedAuthority a : authentication.getAuthorities())
 				if (a.getAuthority().equals("ROLE_ADMIN"))
 					isAdmin = true;
-			
+
 			if (!isAdmin)
 				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-			
+
 			Optional<User> user = userRepo.findById(userId);
 			if (!user.isPresent())
 				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
@@ -71,12 +75,12 @@ public class UserController {
 			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 		}
 	}
-	
+
 	@GetMapping("/my-profile")
 	public ResponseEntity<User> getUserById(Authentication authentication) {
-		try {		
+		try {
 			User user = userRepo.findByEmail(authentication.getName());
-			
+
 			if (user == null)
 				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 
@@ -96,6 +100,15 @@ public class UserController {
 
 			userRepo.saveAndFlush(user);
 
+			StringBuilder body = new StringBuilder();
+			body.append("Hello, ");
+			body.append(request.getName());
+			body.append("!\n\n");
+			body.append("Thank you for joining RAF Airlines and we hope you'll have many wonderful"
+					+ " flights with us!\n\nSincerely,\nRAF Airlines");
+
+			emailService.sendSimpleMessage(request.getEmail(), "Welcome to RAF Airlines", body.toString());
+
 			return new ResponseEntity<>(HttpStatus.ACCEPTED);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -112,7 +125,19 @@ public class UserController {
 			if (user == null)
 				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 
-			user.setEmail(request.getEmail());
+			if (!user.getEmail().equals(request.getEmail())) {
+				user.setEmail(request.getEmail());
+
+				StringBuilder body = new StringBuilder();
+				body.append("Hello, ");
+				body.append(request.getName());
+				body.append("!\n\n");
+				body.append("We're sending this message to let you know that you have successfuly updated"
+						+ " you e-mail address!\n\nSincerely,\nRAF Airlines");
+
+				emailService.sendSimpleMessage(request.getEmail(), "RAF Airlines - Profile update", body.toString());
+			}
+
 			user.setName(request.getName());
 			user.setSurname(request.getSurname());
 			user.setPassport(request.getPassport());
