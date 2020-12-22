@@ -1,11 +1,13 @@
 package raf.petrovicpleskonjic.rafairlinesflightservice.controllers;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -27,6 +29,23 @@ public class AirplaneController {
 	@Autowired
 	public AirplaneController(AirplaneRepository airplaneRepo) {
 		this.airplaneRepo = airplaneRepo;
+	}
+	
+	@GetMapping("/all")
+	public ResponseEntity<List<Airplane>> allAirplanes(@RequestHeader(value = "Authorization") String token) {
+		try {
+			ResponseEntity<Boolean> isAdmin = UtilityMethods.sendGet(Boolean.class,
+					UtilityMethods.USER_SERVICE_URL + "admin-verification", token);
+
+			if (!isAdmin.getBody())
+				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+			
+			List<Airplane> airplanes = airplaneRepo.findAll();
+			
+			return new ResponseEntity<>(airplanes, HttpStatus.BAD_REQUEST);
+		} catch (Exception e) {
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		}
 	}
 
 	@PostMapping("/add")

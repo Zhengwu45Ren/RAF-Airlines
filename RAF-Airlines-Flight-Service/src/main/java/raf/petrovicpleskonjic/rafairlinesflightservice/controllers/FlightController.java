@@ -53,7 +53,26 @@ public class FlightController {
 		this.airplaneRepo = airplaneRepo;
 	}
 
-	@GetMapping("/get-available")
+	@GetMapping("/all")
+	public ResponseEntity<List<Flight>> getAllFlights(@RequestHeader(value = "Authorization") String token) {
+		try {
+			ResponseEntity<Boolean> isAdmin = UtilityMethods.sendGet(Boolean.class,
+					UtilityMethods.USER_SERVICE_URL + "admin-verification", token);
+
+			if (!isAdmin.getBody())
+				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+
+			List<Flight> flights = flightRepo.findAll();
+
+			return new ResponseEntity<>(flights, HttpStatus.ACCEPTED);
+		} catch (Exception e) {
+			e.printStackTrace();
+
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		}
+	}
+
+	@GetMapping("/available")
 	public ResponseEntity<List<Flight>> getAvailableFlights() {
 		try {
 			List<Flight> flights = flightRepo.getAvailableFlights();
@@ -66,14 +85,14 @@ public class FlightController {
 		}
 	}
 
-	@GetMapping("/get-flight-by-id")
+	@GetMapping("/flight-by-id")
 	public ResponseEntity<FlightResponse> getFlightById(@RequestParam long flightId) {
 		try {
 			Optional<Flight> flight = flightRepo.findById(flightId);
 
 			if (!flight.isPresent())
 				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-			
+
 			Boolean isFull = flight.get().getPassengers().size() >= flight.get().getAirplane().getCapacity();
 
 			return new ResponseEntity<>(
@@ -142,14 +161,14 @@ public class FlightController {
 
 			if (!flight.get().getPassengers().isEmpty()) {
 				for (Passenger passenger : flight.get().getPassengers()) {
-					
+
 					String message = new ObjectMapper()
 							.writeValueAsString(new FlightDeletedMessage(passenger.getPassengerId(),
 									flight.get().getFlightId(), flight.get().getDistance(), flight.get().getPrice()));
 
 					// Send information to User service:
 					jmsTemplate.convertAndSend(flightDeletedUserQueue, message);
-					
+
 					// Send information to Ticket service:
 					jmsTemplate.convertAndSend(flightDeletedTicketQueue, message);
 				}
