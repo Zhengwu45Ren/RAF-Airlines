@@ -38,3 +38,4 @@ hs_err_pid*
 RAF-Airlines-Flight-Service/.classpath
 RAF-Airlines-User-Service/.classpath
 RAF-Airlines-Ticket-Service/.classpath
+RAF-Airlines-Eureka-Server/.classpath
