@@ -2,29 +2,34 @@ package raf.petrovicpleskonjic.rafairlinesflightservice.forms.requests;
 
 public class FindFlightRequest {
 	
-	private String airplaneName;
+	private Integer airplaneId;
 	private String startDestination;
 	private String endDestination;
 	
-	private Integer distance;
+	private Integer minDistance;
+	private Integer maxDistance;
 	
-	private Float price;
-
-	public FindFlightRequest(String airplaneName, String startDestination, String endDestination, Integer distance,
-			Float price) {
-		this.airplaneName = airplaneName;
+	private Float minPrice;
+	private Float maxPrice;
+	
+	
+	public FindFlightRequest(Integer airplaneId, String startDestination, String endDestination, Integer minDistance,
+			Integer maxDistance, Float minPrice, Float maxPrice) {
+		this.airplaneId = airplaneId;
 		this.startDestination = startDestination;
 		this.endDestination = endDestination;
-		this.distance = distance;
-		this.price = price;
+		this.minDistance = minDistance;
+		this.maxDistance = maxDistance;
+		this.minPrice = minPrice;
+		this.maxPrice = maxPrice;
 	}
 
-	public String getAirplaneName() {
-		return airplaneName;
+	public Integer getAirplaneId() {
+		return airplaneId;
 	}
 
-	public void setAirplaneName(String airplaneName) {
-		this.airplaneName = airplaneName;
+	public void setAirplaneId(Integer airplaneId) {
+		this.airplaneId = airplaneId;
 	}
 
 	public String getStartDestination() {
@@ -43,19 +48,35 @@ public class FindFlightRequest {
 		this.endDestination = endDestination;
 	}
 
-	public Integer getDistance() {
-		return distance;
+	public Integer getMinDistance() {
+		return minDistance;
 	}
 
-	public void setDistance(Integer distance) {
-		this.distance = distance;
+	public void setMinDistance(Integer minDistance) {
+		this.minDistance = minDistance;
 	}
 
-	public Float getPrice() {
-		return price;
+	public Integer getMaxDistance() {
+		return maxDistance;
 	}
 
-	public void setPrice(Float price) {
-		this.price = price;
+	public void setMaxDistance(Integer maxDistance) {
+		this.maxDistance = maxDistance;
+	}
+
+	public Float getMinPrice() {
+		return minPrice;
+	}
+
+	public void setMinPrice(Float minPrice) {
+		this.minPrice = minPrice;
+	}
+
+	public Float getMaxPrice() {
+		return maxPrice;
+	}
+
+	public void setMaxPrice(Float maxPrice) {
+		this.maxPrice = maxPrice;
 	}
 }

@@ -5,14 +5,12 @@ public class UpdateRequest {
 	private String name;
 	private String surname;
 	private String email;
-	private String password;
 	private String passport;
 	
-	public UpdateRequest(String name, String surname, String email, String password, String passport) {
+	public UpdateRequest(String name, String surname, String email, String passport) {
 		this.name = name;
 		this.surname = surname;
 		this.email = email;
-		this.password = password;
 		this.passport = passport;
 	}
 
@@ -38,14 +36,6 @@ public class UpdateRequest {
 
 	public void setEmail(String email) {
 		this.email = email;
-	}
-
-	public String getPassword() {
-		return password;
-	}
-
-	public void setPassword(String password) {
-		this.password = password;
 	}
 
 	public String getPassport() {

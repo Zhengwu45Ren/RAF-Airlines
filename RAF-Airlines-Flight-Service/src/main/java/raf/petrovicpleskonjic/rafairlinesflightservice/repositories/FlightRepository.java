@@ -12,10 +12,10 @@ public interface FlightRepository extends JpaRepository<Flight, Long> {
 	@Query("SELECT f FROM Flight f WHERE f.passengers.size < f.airplane.capacity AND f.canceled is false")
 	List<Flight> getAvailableFlights();
 
-	@Query("SELECT f FROM Flight f WHERE lower(f.airplane.name) LIKE lower(:airplaneName) "
+	@Query("SELECT f FROM Flight f WHERE f.passengers.size < f.airplane.capacity AND f.canceled is false AND (f.airplane.airplaneId = :airplaneId "
 			+ "OR lower(f.startDestination) LIKE lower(:startDestination) "
 			+ "OR lower(f.endDestination) LIKE lower(:endDestination) "
-			+ "OR f.distance = :distance OR f.price = :price")
-	List<Flight> searchFlights(String airplaneName, String startDestination, String endDestination, Integer distance,
-			Float price);
+			+ "OR (f.distance BETWEEN :minDistance AND :maxDistance) OR (f.price BETWEEN :minPrice AND :maxPrice))")
+	List<Flight> searchFlights(int airplaneId, String startDestination, String endDestination, Integer minDistance,
+			Integer maxDistance, Float minPrice, Float maxPrice);
 }

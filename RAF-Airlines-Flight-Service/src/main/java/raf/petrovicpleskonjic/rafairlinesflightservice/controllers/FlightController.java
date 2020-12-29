@@ -108,8 +108,9 @@ public class FlightController {
 	@PostMapping("/search")
 	public ResponseEntity<List<Flight>> searchFlights(@RequestBody FindFlightRequest request) {
 		try {
-			List<Flight> flights = flightRepo.searchFlights(request.getAirplaneName(), request.getStartDestination(),
-					request.getEndDestination(), request.getDistance(), request.getPrice());
+			List<Flight> flights = flightRepo.searchFlights(request.getAirplaneId(), request.getStartDestination(),
+					request.getEndDestination(), request.getMinDistance(), request.getMaxDistance(),
+					request.getMinPrice(), request.getMaxPrice());
 
 			return new ResponseEntity<>(flights, HttpStatus.ACCEPTED);
 		} catch (Exception e) {

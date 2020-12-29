@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 import raf.petrovicpleskonjic.rafairlinesuserservice.EmailService;
 import raf.petrovicpleskonjic.rafairlinesuserservice.UtilityMethods;
 import raf.petrovicpleskonjic.rafairlinesuserservice.forms.requests.user.RegistrationRequest;
+import raf.petrovicpleskonjic.rafairlinesuserservice.forms.requests.user.UpdatePasswordRequest;
 import raf.petrovicpleskonjic.rafairlinesuserservice.forms.requests.user.UpdateRequest;
 import raf.petrovicpleskonjic.rafairlinesuserservice.models.User;
 import raf.petrovicpleskonjic.rafairlinesuserservice.repositories.AdministratorRepository;
@@ -141,7 +142,30 @@ public class UserController {
 			user.setName(request.getName());
 			user.setSurname(request.getSurname());
 			user.setPassport(request.getPassport());
-			user.setPassword(encoder.encode(request.getPassword()));
+
+			userRepo.save(user);
+
+			return new ResponseEntity<>(user, HttpStatus.ACCEPTED);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		}
+	}
+	
+	@PutMapping("/update-password")
+	public ResponseEntity<User> update(@RequestBody UpdatePasswordRequest request,
+			@RequestHeader(value = HEADER_STRING) String token) {
+		try {
+
+			User user = userRepo.findByEmail(UtilityMethods.getUsernameFromToken(token));
+			if (user == null)
+				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+			
+			if (!user.getPassword().equals(encoder.encode(request.getCurrentPassword())))
+				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+			
+			user.setPassword(encoder.encode(request.getNewPassword()));
 
 			userRepo.save(user);
 
