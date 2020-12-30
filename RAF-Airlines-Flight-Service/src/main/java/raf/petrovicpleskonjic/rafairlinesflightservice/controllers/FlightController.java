@@ -135,7 +135,7 @@ public class FlightController {
 				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 
 			Flight flight = new Flight(airplane.get(), request.getStartDestination(), request.getEndDestination(),
-					request.getDistance(), request.getPrice());
+					request.getDistance(), request.getPrice(), false);
 
 			flightRepo.saveAndFlush(flight);
 			return new ResponseEntity<>(flight, HttpStatus.ACCEPTED);

@@ -42,7 +42,7 @@ public class AirplaneController {
 			
 			List<Airplane> airplanes = airplaneRepo.findAll();
 			
-			return new ResponseEntity<>(airplanes, HttpStatus.BAD_REQUEST);
+			return new ResponseEntity<>(airplanes, HttpStatus.ACCEPTED);
 		} catch (Exception e) {
 			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 		}

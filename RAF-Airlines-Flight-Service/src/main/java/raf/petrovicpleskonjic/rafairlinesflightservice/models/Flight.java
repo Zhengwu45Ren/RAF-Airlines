@@ -33,12 +33,13 @@ public class Flight {
 	
 	public Flight() {}
 
-	public Flight(Airplane airplane, String startDestination, String endDestination, Integer distance, Float price) {
+	public Flight(Airplane airplane, String startDestination, String endDestination, Integer distance, Float price, Boolean canceled) {
 		this.airplane = airplane;
 		this.startDestination = startDestination;
 		this.endDestination = endDestination;
 		this.distance = distance;
 		this.price = price;
+		this.canceled = canceled;
 	}
 	
 	public Airplane getAirplane() {
