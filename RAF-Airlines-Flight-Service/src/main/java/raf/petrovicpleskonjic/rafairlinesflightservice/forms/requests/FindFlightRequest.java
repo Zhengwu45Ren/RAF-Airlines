@@ -2,7 +2,7 @@ package raf.petrovicpleskonjic.rafairlinesflightservice.forms.requests;
 
 public class FindFlightRequest {
 	
-	private Integer airplaneId;
+	private Long airplaneId;
 	private String startDestination;
 	private String endDestination;
 	
@@ -13,7 +13,7 @@ public class FindFlightRequest {
 	private Float maxPrice;
 	
 	
-	public FindFlightRequest(Integer airplaneId, String startDestination, String endDestination, Integer minDistance,
+	public FindFlightRequest(Long airplaneId, String startDestination, String endDestination, Integer minDistance,
 			Integer maxDistance, Float minPrice, Float maxPrice) {
 		this.airplaneId = airplaneId;
 		this.startDestination = startDestination;
@@ -24,11 +24,11 @@ public class FindFlightRequest {
 		this.maxPrice = maxPrice;
 	}
 
-	public Integer getAirplaneId() {
+	public Long getAirplaneId() {
 		return airplaneId;
 	}
 
-	public void setAirplaneId(Integer airplaneId) {
+	public void setAirplaneId(Long airplaneId) {
 		this.airplaneId = airplaneId;
 	}
 

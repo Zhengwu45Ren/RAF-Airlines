@@ -2,6 +2,7 @@ package raf.petrovicpleskonjic.rafairlinesuserservice.controllers;
 
 import static raf.petrovicpleskonjic.rafairlinesuserservice.security.SecurityConstants.HEADER_STRING;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,8 +25,10 @@ import raf.petrovicpleskonjic.rafairlinesuserservice.UtilityMethods;
 import raf.petrovicpleskonjic.rafairlinesuserservice.forms.requests.user.RegistrationRequest;
 import raf.petrovicpleskonjic.rafairlinesuserservice.forms.requests.user.UpdatePasswordRequest;
 import raf.petrovicpleskonjic.rafairlinesuserservice.forms.requests.user.UpdateRequest;
+import raf.petrovicpleskonjic.rafairlinesuserservice.models.Tier;
 import raf.petrovicpleskonjic.rafairlinesuserservice.models.User;
 import raf.petrovicpleskonjic.rafairlinesuserservice.repositories.AdministratorRepository;
+import raf.petrovicpleskonjic.rafairlinesuserservice.repositories.TierRepository;
 import raf.petrovicpleskonjic.rafairlinesuserservice.repositories.UserRepository;
 
 @RestController
@@ -35,13 +38,15 @@ public class UserController {
 	private EmailService emailService;
 	private BCryptPasswordEncoder encoder;
 	private UserRepository userRepo;
+	private TierRepository tierRepo;
 
 	@Autowired
 	public UserController(EmailService emailService, BCryptPasswordEncoder encoder, UserRepository userRepo,
-			AdministratorRepository adminRepo) {
+			TierRepository tierRepo) {
 		this.emailService = emailService;
 		this.encoder = encoder;
 		this.userRepo = userRepo;
+		this.tierRepo = tierRepo;
 	}
 
 	@GetMapping("/admin-verification")
@@ -98,6 +103,15 @@ public class UserController {
 		try {
 			User user = new User(0, request.getName(), request.getSurname(), request.getEmail(),
 					encoder.encode(request.getPassword()), request.getPassport());
+			
+			List<Tier> tiers = tierRepo.findAll();
+
+			for (Tier tier : tiers) {
+				if (tier.getThreshold() == 0) {
+					user.setTier(tier);
+					break;
+				}
+			}
 
 			userRepo.saveAndFlush(user);
 

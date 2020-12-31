@@ -95,9 +95,9 @@ public class FlightController {
 
 			Boolean isFull = flight.get().getPassengers().size() >= flight.get().getAirplane().getCapacity();
 
-			return new ResponseEntity<>(
-					new FlightResponse(flightId, flight.get().getDistance(), flight.get().getPrice(), isFull),
-					HttpStatus.ACCEPTED);
+			return new ResponseEntity<>(new FlightResponse(flightId, flight.get().getDistance(),
+					flight.get().getPrice(), isFull, flight.get().getStartDestination(),
+					flight.get().getEndDestination(), flight.get().getAirplane()), HttpStatus.ACCEPTED);
 		} catch (Exception e) {
 			e.printStackTrace();
 

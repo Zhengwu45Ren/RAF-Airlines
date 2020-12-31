@@ -9,6 +9,11 @@ import javax.persistence.Id;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Entity
 public class Flight {
 
@@ -20,6 +25,8 @@ public class Flight {
 	private Airplane airplane;
 	
 	@ManyToMany
+	@JsonIgnore
+	@Fetch(FetchMode.JOIN)
 	private List<Passenger> passengers;
 	
 	private String startDestination;

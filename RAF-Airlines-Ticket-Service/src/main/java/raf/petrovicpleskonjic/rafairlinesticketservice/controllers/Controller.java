@@ -1,5 +1,6 @@
 package raf.petrovicpleskonjic.rafairlinesticketservice.controllers;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.jms.Queue;
@@ -21,6 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import raf.petrovicpleskonjic.rafairlinesticketservice.forms.requests.NewTicketRequest;
 import raf.petrovicpleskonjic.rafairlinesticketservice.forms.requests.PassengerPurchaseRequest;
 import raf.petrovicpleskonjic.rafairlinesticketservice.forms.responses.FlightResponse;
+import raf.petrovicpleskonjic.rafairlinesticketservice.forms.responses.TicketResponse;
 import raf.petrovicpleskonjic.rafairlinesticketservice.forms.responses.UserProfileResponse;
 import raf.petrovicpleskonjic.rafairlinesticketservice.forms.responses.UserPurchaseInformationResponse;
 import raf.petrovicpleskonjic.rafairlinesticketservice.messages.FlightAssignedMessage;
@@ -79,7 +81,7 @@ public class Controller {
 	}
 
 	@GetMapping("/get-my-tickets")
-	public ResponseEntity<List<Ticket>> getMyTickets(@RequestHeader(value = "Authorization") String token) {
+	public ResponseEntity<List<TicketResponse>> getMyTickets(@RequestHeader(value = "Authorization") String token) {
 		try {
 			UriComponentsBuilder builder = UriComponentsBuilder
 					.fromHttpUrl(UtilityMethods.USER_SERVICE_URL + "my-profile");
@@ -91,8 +93,20 @@ public class Controller {
 				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 
 			List<Ticket> tickets = ticketRepo.getTicketsForPassenger(response.getBody().getUserId());
+			List<TicketResponse> ticketsResponse = new ArrayList<TicketResponse>();
+			
+			for (Ticket t : tickets) {
+				UriComponentsBuilder flightRequestBuilder = UriComponentsBuilder
+						.fromHttpUrl(UtilityMethods.FLIGHT_SERVICE_URL + "flight/flight-by-id")
+						.queryParam("flightId", t.getFlight().getFlightId());
+				
+				ResponseEntity<FlightResponse> flightResponse = UtilityMethods.sendGet(FlightResponse.class,
+						flightRequestBuilder.toUriString(), token);
+				
+				ticketsResponse.add(new TicketResponse(t.getTicketId(), flightResponse.getBody(), t.getDayBought(), t.isCanceled()));
+			}
 
-			return new ResponseEntity<>(tickets, HttpStatus.ACCEPTED);
+			return new ResponseEntity<>(ticketsResponse, HttpStatus.ACCEPTED);
 		} catch (Exception e) {
 			e.printStackTrace();
 
@@ -101,7 +115,7 @@ public class Controller {
 	}
 
 	@PostMapping("/buy-ticket")
-	public ResponseEntity<Ticket> buyTicket(@RequestBody NewTicketRequest request,
+	public ResponseEntity<TicketResponse> buyTicket(@RequestBody NewTicketRequest request,
 			@RequestHeader(value = "Authorization") String token) {
 		try {
 			UriComponentsBuilder profileRequestBuilder = UriComponentsBuilder
@@ -119,11 +133,8 @@ public class Controller {
 			else
 				passenger = passengerRepo.save(new Passenger(response.getBody().getUserId()));
 
-			if (!flightRepo.existsById(request.getFlightId()))
-				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-
 			UriComponentsBuilder flightRequestBuilder = UriComponentsBuilder
-					.fromHttpUrl(UtilityMethods.FLIGHT_SERVICE_URL + "get-flight-by-id")
+					.fromHttpUrl(UtilityMethods.FLIGHT_SERVICE_URL + "flight/flight-by-id")
 					.queryParam("flightId", request.getFlightId());
 
 			ResponseEntity<FlightResponse> flightResponse = UtilityMethods.sendGet(FlightResponse.class,
@@ -157,7 +168,7 @@ public class Controller {
 			jmsTemplate.convertAndSend(flightAssignedFlightQueue, message);
 			jmsTemplate.convertAndSend(flightAssignedUserQueue, message);
 			
-			return new ResponseEntity<>(ticket, HttpStatus.ACCEPTED);
+			return new ResponseEntity<>(new TicketResponse(ticket.getTicketId(), flightResponse.getBody(), ticket.getDayBought(), false), HttpStatus.ACCEPTED);
 		} catch (Exception e) {
 			e.printStackTrace();
 

@@ -95,7 +95,7 @@ public class ActiveMQConsumer {
 			user.get().setTier(newTier);
 			userRepo.save(user.get());
 		} catch (Exception e) {
-
+			e.printStackTrace();
 		}
 	}
 }

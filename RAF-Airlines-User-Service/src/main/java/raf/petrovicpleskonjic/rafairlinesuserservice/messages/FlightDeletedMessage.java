@@ -8,6 +8,8 @@ public class FlightDeletedMessage {
 	private Integer distance;
 	
 	private Float price;
+	
+	public FlightDeletedMessage() {}
 
 	public FlightDeletedMessage(Long passengerId, Long flightId, Integer distance, Float price) {
 		this.passengerId = passengerId;

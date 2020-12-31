@@ -34,12 +34,6 @@ public class AirplaneController {
 	@GetMapping("/all")
 	public ResponseEntity<List<Airplane>> allAirplanes(@RequestHeader(value = "Authorization") String token) {
 		try {
-			ResponseEntity<Boolean> isAdmin = UtilityMethods.sendGet(Boolean.class,
-					UtilityMethods.USER_SERVICE_URL + "admin-verification", token);
-
-			if (!isAdmin.getBody())
-				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-			
 			List<Airplane> airplanes = airplaneRepo.findAll();
 			
 			return new ResponseEntity<>(airplanes, HttpStatus.ACCEPTED);

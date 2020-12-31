@@ -2,6 +2,7 @@ package raf.petrovicpleskonjic.rafairlinesflightservice.consumer;
 
 import java.util.Optional;
 
+import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Component;
@@ -41,6 +42,7 @@ public class ActiveMQConsumer {
 			else
 				passenger = passengerRepo.save(new Passenger(message.getPassengerId()));
 			
+			Hibernate.initialize(flight.get().getPassengers());
 			flight.get().getPassengers().add(passenger);
 			flightRepo.save(flight.get());
 		} catch (Exception e) {
