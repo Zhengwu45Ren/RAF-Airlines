@@ -7,8 +7,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
-
-import org.springframework.data.annotation.CreatedDate;
+import javax.persistence.PrePersist;
 
 @Entity
 public class Ticket {
@@ -23,10 +22,14 @@ public class Ticket {
 	@ManyToOne
 	private Flight flight;
 	
-	@CreatedDate
 	private Date dayBought;
 	
 	private boolean canceled;
+	
+	@PrePersist
+	protected void onCreate() {
+		dayBought = new Date();
+	}
 	
 	public Ticket() {}
 

@@ -1,11 +1,17 @@
 package raf.petrovicpleskonjic.rafairlinesuserservice.controllers;
 
+import static com.auth0.jwt.algorithms.Algorithm.HMAC512;
 import static raf.petrovicpleskonjic.rafairlinesuserservice.security.SecurityConstants.HEADER_STRING;
+import static raf.petrovicpleskonjic.rafairlinesuserservice.security.SecurityConstants.SECRET;
+import static raf.petrovicpleskonjic.rafairlinesuserservice.security.SecurityConstants.TOKEN_EXPIRATION_TIME;
+import static raf.petrovicpleskonjic.rafairlinesuserservice.security.SecurityConstants.TOKEN_PREFIX;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -20,6 +26,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.auth0.jwt.JWT;
+
 import raf.petrovicpleskonjic.rafairlinesuserservice.EmailService;
 import raf.petrovicpleskonjic.rafairlinesuserservice.UtilityMethods;
 import raf.petrovicpleskonjic.rafairlinesuserservice.forms.requests.user.RegistrationRequest;
@@ -27,7 +35,6 @@ import raf.petrovicpleskonjic.rafairlinesuserservice.forms.requests.user.UpdateP
 import raf.petrovicpleskonjic.rafairlinesuserservice.forms.requests.user.UpdateRequest;
 import raf.petrovicpleskonjic.rafairlinesuserservice.models.Tier;
 import raf.petrovicpleskonjic.rafairlinesuserservice.models.User;
-import raf.petrovicpleskonjic.rafairlinesuserservice.repositories.AdministratorRepository;
 import raf.petrovicpleskonjic.rafairlinesuserservice.repositories.TierRepository;
 import raf.petrovicpleskonjic.rafairlinesuserservice.repositories.UserRepository;
 
@@ -123,8 +130,12 @@ public class UserController {
 					+ " flights with us!\n\nSincerely,\nRAF Airlines");
 
 			emailService.sendSimpleMessage(request.getEmail(), "Welcome to RAF Airlines", body.toString());
+			
+			String token = JWT.create().withSubject(request.getEmail())
+					.withExpiresAt(new Date(System.currentTimeMillis() + TOKEN_EXPIRATION_TIME))
+					.sign(HMAC512(SECRET.getBytes()));
 
-			return new ResponseEntity<>(HttpStatus.ACCEPTED);
+			return ResponseEntity.ok().header(HEADER_STRING, TOKEN_PREFIX + token).body(null);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
@@ -176,7 +187,7 @@ public class UserController {
 			if (user == null)
 				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 			
-			if (!user.getPassword().equals(encoder.encode(request.getCurrentPassword())))
+			if (!encoder.matches(request.getCurrentPassword(), user.getPassword()))
 				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 			
 			user.setPassword(encoder.encode(request.getNewPassword()));

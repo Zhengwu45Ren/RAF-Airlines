@@ -1,6 +1,8 @@
 package raf.petrovicpleskonjic.rafairlinesticketservice.controllers;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import javax.jms.Queue;
@@ -105,6 +107,15 @@ public class Controller {
 				
 				ticketsResponse.add(new TicketResponse(t.getTicketId(), flightResponse.getBody(), t.getDayBought(), t.isCanceled()));
 			}
+			
+			Collections.sort(ticketsResponse, new Comparator<TicketResponse>() {
+
+				@Override
+				public int compare(TicketResponse t1, TicketResponse t2) {
+					return t1.getDayBought().compareTo(t2.getDayBought());
+				}
+				
+			});
 
 			return new ResponseEntity<>(ticketsResponse, HttpStatus.ACCEPTED);
 		} catch (Exception e) {
@@ -132,6 +143,12 @@ public class Controller {
 				passenger = passengerRepo.findById(response.getBody().getUserId()).get();
 			else
 				passenger = passengerRepo.save(new Passenger(response.getBody().getUserId()));
+			
+			List<Ticket> ticketsForPassenger = ticketRepo.getTicketsForPassenger(passenger.getPassengerId());
+			for (Ticket t : ticketsForPassenger) {
+				if (t.getFlight().getFlightId() == request.getFlightId())
+					return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+			}
 
 			UriComponentsBuilder flightRequestBuilder = UriComponentsBuilder
 					.fromHttpUrl(UtilityMethods.FLIGHT_SERVICE_URL + "flight/flight-by-id")

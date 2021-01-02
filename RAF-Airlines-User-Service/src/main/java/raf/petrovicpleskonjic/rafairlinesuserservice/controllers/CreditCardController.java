@@ -52,7 +52,7 @@ public class CreditCardController {
 				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 
 			CreditCard creditCard = new CreditCard(request.getNumber(), request.getCcv(), user);
-			creditCardRepo.saveAndFlush(creditCard);
+			creditCard = creditCardRepo.saveAndFlush(creditCard);
 
 			return new ResponseEntity<>(creditCard, HttpStatus.ACCEPTED);
 		} catch (Exception e) {
