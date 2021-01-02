@@ -1,5 +1,6 @@
 package raf.petrovicpleskonjic.rafairlinesflightservice.controllers;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -73,11 +74,18 @@ public class FlightController {
 	}
 
 	@GetMapping("/available")
-	public ResponseEntity<List<Flight>> getAvailableFlights() {
+	public ResponseEntity<List<Flight>> getAvailableFlights(@RequestParam int page) {
 		try {
 			List<Flight> flights = flightRepo.getAvailableFlights();
 
-			return new ResponseEntity<>(flights, HttpStatus.ACCEPTED);
+			Integer pageSize = 2;
+			Integer fromIndex = (page - 1) * pageSize;
+
+			if (flights.size() <= fromIndex)
+				return new ResponseEntity<>(Collections.emptyList(), HttpStatus.ACCEPTED);
+
+			return new ResponseEntity<>(flights.subList(fromIndex, Math.min(fromIndex + pageSize, flights.size())),
+					HttpStatus.ACCEPTED);
 		} catch (Exception e) {
 			e.printStackTrace();
 
