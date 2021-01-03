@@ -2,6 +2,7 @@ package raf.petrovicpleskonjic.rafairlinesflightservice.controllers;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Optional;
 
 import javax.jms.Queue;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -31,6 +33,7 @@ import raf.petrovicpleskonjic.rafairlinesflightservice.models.Passenger;
 import raf.petrovicpleskonjic.rafairlinesflightservice.repositories.AirplaneRepository;
 import raf.petrovicpleskonjic.rafairlinesflightservice.repositories.FlightRepository;
 import raf.petrovicpleskonjic.rafairlinesflightservice.utils.UtilityMethods;
+import raf.petrovicpleskonjic.rafairlinesflightservice.forms.responses.UserProfileResponse;
 
 @RestController
 @RequestMapping("/flight")
@@ -74,9 +77,27 @@ public class FlightController {
 	}
 
 	@GetMapping("/available")
-	public ResponseEntity<List<Flight>> getAvailableFlights(@RequestParam int page) {
-		try {
+	public ResponseEntity<List<Flight>> getAvailableFlights(@RequestParam int page,
+			@RequestHeader(value = "Authorization") String token) {
+		try {			
+			UriComponentsBuilder builder = UriComponentsBuilder
+					.fromHttpUrl(UtilityMethods.USER_SERVICE_URL + "my-profile");
+
+			ResponseEntity<UserProfileResponse> response = UtilityMethods.sendGet(UserProfileResponse.class,
+					builder.toUriString(), token);
+
+			if (response.getBody() == null)
+				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+			
 			List<Flight> flights = flightRepo.getAvailableFlights();
+			ListIterator<Flight> iter = flights.listIterator();
+			while (iter.hasNext()) {
+				Flight flight = iter.next();
+				for (Passenger passenger : flight.getPassengers()) {
+					if (passenger.getPassengerId() == response.getBody().getUserId())
+						iter.remove();
+				}
+			}
 
 			Integer pageSize = 2;
 			Integer fromIndex = (page - 1) * pageSize;

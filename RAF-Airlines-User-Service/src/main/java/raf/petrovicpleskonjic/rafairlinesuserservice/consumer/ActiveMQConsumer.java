@@ -46,7 +46,7 @@ public class ActiveMQConsumer {
 			Tier newTier = null;
 
 			for (Tier tier : tiers) {
-				if (user.get().getMiles() > tier.getThreshold())
+				if (user.get().getMiles() >= tier.getThreshold())
 					if (newTier == null || newTier.getThreshold() < tier.getThreshold())
 						newTier = tier;
 			}
@@ -63,7 +63,7 @@ public class ActiveMQConsumer {
 			body.append(" has been canceled due to unforeseen circumstances.\n");
 			body.append("Your funds in value of ");
 			body.append(message.getPrice());
-			body.append(" EUR have been refunded to your card\n");
+			body.append(" EUR have been refunded to your card\n\n");
 			body.append("We're very sorry for the caused inconvenience!\n\nSincerely,\nRAF Airlines");
 
 			emailService.sendSimpleMessage(user.get().getEmail(), "RAF Airlines - Profile update", body.toString());
