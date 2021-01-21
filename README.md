@@ -35,6 +35,6 @@ Once the dependencies are installed, database is setup and ActiveMQ is running, 
 ---
 
 ## Notes
-This application was built in parallel with https://github.com/Qwerasdzxc/RAF-Airlines-Mobile-application
+This application was built in parallel with https://github.com/Qwerasdzxc/RAF-Airlines-Mobile-application and https://github.com/Qwerasdzxc/RAF-Airlines-Administrator-Portal
 
 Enjoy!
