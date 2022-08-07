@@ -1,9 +1,15 @@
 package raf.petrovicpleskonjic.rafairlinesticketservice.config;
 
+import javax.jms.Connection;
+import javax.jms.JMSException;
 import javax.jms.Queue;
 
+import airline.buyTicket.roles.Flight;
+import airline.buyTicket.roles.Ticket;
+import airline.buyTicket.roles.User;
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.command.ActiveMQQueue;
+import org.scribble.runtime.session.MSEndpoint;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -36,5 +42,21 @@ public class ActiveMQConfiguration {
 	@Bean
 	public JmsTemplate jmsTemplate() {
 		return new JmsTemplate(activeMQConnectionFactory());
+	}
+
+	@Bean
+	public MSEndpoint<Ticket> msEndpoint(){
+		try {
+			activeMQConnectionFactory().setTrustAllPackages(true);
+			Connection connection = activeMQConnectionFactory().createConnection();
+			connection.start();
+
+			MSEndpoint<Ticket> msEndpoint = new MSEndpoint<>(Ticket.Ticket, connection);
+			msEndpoint.connect(Flight.Flight);
+			msEndpoint.connect(User.User);
+			return msEndpoint;
+		} catch (JMSException e) {
+			throw new RuntimeException(e);
+		}
 	}
 }

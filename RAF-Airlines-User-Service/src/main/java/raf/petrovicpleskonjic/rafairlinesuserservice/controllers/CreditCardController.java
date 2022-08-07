@@ -3,7 +3,6 @@ package raf.petrovicpleskonjic.rafairlinesuserservice.controllers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -13,10 +12,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import raf.petrovicpleskonjic.rafairlinesuserservice.UtilityMethods;
+import raf.petrovicpleskonjic.rafairlinesuserservice.utils.UtilityMethods;
 import raf.petrovicpleskonjic.rafairlinesuserservice.forms.requests.credit_card.NewCreditCardRequest;
-import raf.petrovicpleskonjic.rafairlinesuserservice.forms.requests.credit_card.PassengerPurchaseRequest;
-import raf.petrovicpleskonjic.rafairlinesuserservice.forms.responses.UserPurchaseInformationResponse;
 import raf.petrovicpleskonjic.rafairlinesuserservice.models.CreditCard;
 import raf.petrovicpleskonjic.rafairlinesuserservice.models.User;
 import raf.petrovicpleskonjic.rafairlinesuserservice.repositories.CreditCardRepository;
@@ -45,7 +42,7 @@ public class CreditCardController {
 			@RequestHeader(value = HEADER_STRING) String token) {
 
 		try {
-			User user = userRepo.findByEmail(UtilityMethods.getUsernameFromToken(token));
+			User user = userRepo.findByEmail(token);
 
 			if (user == null || request.getNumber() == null || request.getCcv() == null
 					|| creditCardRepo.existsById(request.getNumber()))
@@ -66,7 +63,7 @@ public class CreditCardController {
 			@RequestHeader(value = HEADER_STRING) String token) {
 
 		try {
-			User user = userRepo.findByEmail(UtilityMethods.getUsernameFromToken(token));
+			User user = userRepo.findByEmail(token);
 
 			if (user == null)
 				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
@@ -88,7 +85,7 @@ public class CreditCardController {
 	public ResponseEntity<List<CreditCard>> getCreditCards(@RequestHeader(value = HEADER_STRING) String token) {
 
 		try {
-			User user = userRepo.findByEmail(UtilityMethods.getUsernameFromToken(token));
+			User user = userRepo.findByEmail(token);
 
 			if (user == null)
 				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
@@ -101,60 +98,4 @@ public class CreditCardController {
 			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 		}
 	}
-
-	@PostMapping("/get-purchase-information")
-	public ResponseEntity<UserPurchaseInformationResponse> getPurchaseInformation(Authentication authentication,
-			@RequestBody PassengerPurchaseRequest request) {
-		try {
-			User user = userRepo.findByEmail(authentication.getName());
-			if (user == null)
-				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-
-			Optional<CreditCard> creditCard = creditCardRepo.findById(request.getCreditCardNumber());
-			if (!creditCard.isPresent() || creditCard.get().getOwner().getUserId() != user.getUserId())
-				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-
-			return new ResponseEntity<>(new UserPurchaseInformationResponse(user.getUserId(),
-					user.getTier().getSalePercentage(), creditCard.get().getNumber()), HttpStatus.ACCEPTED);
-		} catch (Exception e) {
-			e.printStackTrace();
-			
-			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-		}
-	}
-
-//	@PostMapping("/make-flight-payment")
-//	public ResponseEntity<Boolean> makeFlightPayment(Authentication authentication, @RequestBody PaymentRequest request) {
-//		try {
-//			User user = userRepo.findByEmail(authentication.getName());
-//			if (user == null)
-//				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-//			
-//			Optional<CreditCard> creditCard = creditCardRepo.findById(request.getCreditCardNumber());
-//			if (!creditCard.isPresent() || creditCard.get().getOwner().getUserId() != user.getUserId())
-//				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-//						
-//			Float totalAmountToPay = request.getAmount() - (user.getTier().getSalePercentage() / 100 * request.getAmount());
-//			System.out.println("Transaction: " + totalAmountToPay);
-//			
-//			user.setMiles(user.getMiles() + request.getMiles());
-//			
-//			List<Tier> tiers = tierRepo.findAll();
-//			Tier newTier = null;
-//			for (Tier tier : tiers) {
-//				if (user.getMiles() > tier.getThreshold())
-//					if (newTier == null || newTier.getThreshold() < tier.getThreshold())
-//						newTier = tier;
-//			}
-//			user.setTier(newTier);
-//			
-//			userRepo.save(user);
-//			
-//			return new ResponseEntity<>(true, HttpStatus.BAD_REQUEST);
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-//		}
-//	}
-
 }

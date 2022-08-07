@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="raf-airlines-eureka-server" />
+        <module name="raf-airlines-zuul-gateway-service" />
+        <module name="raf-airlines-ticket-service" />
+        <module name="raf-airlines-user-service" />
+        <module name="raf-airlines-flight-service" />
+      </profile>
+    </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="raf-airlines-eureka-server" target="11" />
+      <module name="raf-airlines-flight-service" target="11" />
+      <module name="raf-airlines-ticket-service" target="11" />
+      <module name="raf-airlines-user-service" target="11" />
+      <module name="raf-airlines-zuul-gateway-service" target="11" />
+    </bytecodeTargetLevel>
+  </component>
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="raf-airlines-eureka-server" options="-parameters" />
+      <module name="raf-airlines-flight-service" options="-parameters" />
+      <module name="raf-airlines-ticket-service" options="-parameters" />
+      <module name="raf-airlines-user-service" options="-parameters" />
+      <module name="raf-airlines-zuul-gateway-service" options="-parameters" />
+    </option>
+  </component>
+</project>

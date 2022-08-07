@@ -5,8 +5,15 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import javax.jms.Connection;
 import javax.jms.Queue;
 
+import airline.buyTicket.ms.Ticket.*;
+import airline.buyTicket.ops.*;
+import airline.buyTicket.roles.User;
+import org.apache.activemq.ActiveMQConnectionFactory;
+import org.scribble.runtime.session.MSEndpoint;
+import org.scribble.runtime.util.Buf;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -52,6 +59,9 @@ public class Controller {
 
 	@Autowired
 	Queue flightAssignedFlightQueue;
+
+	@Autowired
+	MSEndpoint<airline.buyTicket.roles.Ticket> msEndpoint;
 
 	@Autowired
 	public Controller(PassengerRepository passengerRepo, TicketRepository ticketRepo, FlightRepository flightRepo) {
@@ -129,6 +139,7 @@ public class Controller {
 	public ResponseEntity<TicketResponse> buyTicket(@RequestBody NewTicketRequest request,
 			@RequestHeader(value = "Authorization") String token) {
 		try {
+			//TODO: Rest request to scribble (Get user profile by email) ? need UserID User Name
 			UriComponentsBuilder profileRequestBuilder = UriComponentsBuilder
 					.fromHttpUrl(UtilityMethods.USER_SERVICE_URL + "my-profile");
 
@@ -143,13 +154,8 @@ public class Controller {
 				passenger = passengerRepo.findById(response.getBody().getUserId()).get();
 			else
 				passenger = passengerRepo.save(new Passenger(response.getBody().getUserId()));
-			
-			List<Ticket> ticketsForPassenger = ticketRepo.getTicketsForPassenger(passenger.getPassengerId());
-			for (Ticket t : ticketsForPassenger) {
-				if (t.getFlight().getFlightId() == request.getFlightId())
-					return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-			}
 
+			//TODO: Rest request to scribble (Get flight by id)
 			UriComponentsBuilder flightRequestBuilder = UriComponentsBuilder
 					.fromHttpUrl(UtilityMethods.FLIGHT_SERVICE_URL + "flight/flight-by-id")
 					.queryParam("flightId", request.getFlightId());
@@ -157,24 +163,14 @@ public class Controller {
 			ResponseEntity<FlightResponse> flightResponse = UtilityMethods.sendGet(FlightResponse.class,
 					flightRequestBuilder.toUriString(), token);
 
+			System.out.println("2");
+
 			if (flightResponse.getBody() == null || flightResponse.getBody().isFull())
 				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 
-			PassengerPurchaseRequest purchaseRequest = new PassengerPurchaseRequest(passenger.getPassengerId(),
-					request.getCreditCardNumber());
+			Float totalAmountToPay = flightResponse.getBody().getPrice();
 
-			ResponseEntity<UserPurchaseInformationResponse> purchaseResponse = UtilityMethods.sendPost(
-					UserPurchaseInformationResponse.class,
-					UtilityMethods.USER_SERVICE_URL + "/credit-card/get-purchase-information", token, purchaseRequest);
-
-			if (purchaseResponse.getBody() == null)
-				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-
-			Float totalAmountToPay = flightResponse.getBody().getPrice()
-					- (purchaseResponse.getBody().getSalePercentage() / 100 * flightResponse.getBody().getPrice());
-
-			System.out
-					.println("Requesting " + totalAmountToPay + " funds for passenger " + response.getBody().getName());
+			System.out.println("Requesting " + totalAmountToPay + " funds for passenger " + response.getBody().getName());
 
 			Flight flight = flightRepo.save(new Flight(flightResponse.getBody().getFlightId()));
 			Ticket ticket = ticketRepo.save(new Ticket(passenger, flight));
@@ -182,7 +178,11 @@ public class Controller {
 			String message = new ObjectMapper().writeValueAsString(new FlightAssignedMessage(passenger.getPassengerId(),
 					request.getFlightId(), flightResponse.getBody().getDistance()));
 
+			System.out.println("3");
+
+			//TODO: Activemq to scribble(produce message to Flight service)
 			jmsTemplate.convertAndSend(flightAssignedFlightQueue, message);
+			//TODO: Activemq to scribble(produce message to User service)
 			jmsTemplate.convertAndSend(flightAssignedUserQueue, message);
 			
 			return new ResponseEntity<>(new TicketResponse(ticket.getTicketId(), flightResponse.getBody(), ticket.getDayBought(), false), HttpStatus.ACCEPTED);
@@ -193,4 +193,56 @@ public class Controller {
 		}
 	}
 
+
+	@PostMapping("/buy-ticket-ms")
+	public ResponseEntity<TicketResponse> buyTicketMS(@RequestBody NewTicketRequest request,
+													@RequestHeader(value = "Authorization") String token) {
+		try {
+			Buf<Long> longBuf = new Buf<>();
+			Buf<String> stringBuf = new Buf<>();
+			Buf<FlightResponse> responseBuf = new Buf<>();
+
+			buyTicketTicket1MS buyTicketTicket1MS =
+					new buyTicketTicket1MS(msEndpoint);
+			buyTicketTicket2MS buyTicketTicket2MS =
+					buyTicketTicket1MS.send(User.User, GetUser.GetUser, token);
+			buyTicketTicket3MS buyTicketTicket3MS =
+					buyTicketTicket2MS.receive(User.User, ReturnUser.ReturnUser, longBuf, stringBuf);
+
+			if (longBuf.val == null || stringBuf.val == null) {
+				System.out.println("Wrong");
+				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+			}
+
+			Passenger passenger;
+			if (passengerRepo.existsById(longBuf.val))
+				passenger = passengerRepo.findById(longBuf.val).get();
+			else
+				passenger = passengerRepo.save(new Passenger(longBuf.val));
+
+			buyTicketTicket4MS buyTicketTicket4MS = buyTicketTicket3MS.send(airline.buyTicket.roles.Flight.Flight, GetFlight.GetFlight, request.getFlightId());
+			buyTicketTicket5MS buyTicketTicket5MS = buyTicketTicket4MS.receive(airline.buyTicket.roles.Flight.Flight, ReturnFlight.ReturnFlight, responseBuf);
+
+			if (responseBuf.val == null || responseBuf.val.isFull())
+				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+
+			Float totalAmountToPay = responseBuf.val.getPrice();
+
+			System.out.println("Requesting " + totalAmountToPay + " funds for passenger " + stringBuf.val);
+
+			Flight flight = flightRepo.save(new Flight(responseBuf.val.getFlightId()));
+			Ticket ticket = ticketRepo.save(new Ticket(passenger, flight));
+
+			buyTicketTicket6MS buyTicketTicket6MS = buyTicketTicket5MS.send(airline.buyTicket.roles.Flight.Flight, AddUserToFlight.AddUserToFlight, passenger.getPassengerId(), request.getFlightId(), responseBuf.val.getDistance());
+			buyTicketTicket6MS.send(User.User, AddUserMileToUser.AddUserMileToUser, passenger.getPassengerId(), request.getFlightId(), responseBuf.val.getDistance());
+
+
+
+			return new ResponseEntity<>(new TicketResponse(ticket.getTicketId(), responseBuf.val, ticket.getDayBought(), false), HttpStatus.ACCEPTED);
+		} catch (Exception e) {
+			e.printStackTrace();
+
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		}
+	}
 }

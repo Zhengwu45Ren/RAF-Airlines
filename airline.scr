@@ -1,0 +1,25 @@
+/**
+ * Most Activemq usage are publish and subscribe.
+ *
+ * Get Flight request has too many parameters.
+ */
+
+
+
+
+module airline;
+
+type <java> "java.lang.Integer" from "rt.jar" as Int;
+type <java> "java.lang.String" from "rt.jar" as String;
+type <java> "java.lang.Long" from "rt.jar" as Long;
+type <java> "raf.petrovicpleskonjic.rafairlinesticketservice.forms.responses.FlightResponse" from "" as FlightRes;
+
+
+global protocol buyTicket(role Ticket, role Flight, role User){
+    GetUser(String) from Ticket to User;
+    ReturnUser(Long, String) from User to Ticket;
+    GetFlight(Long) from Ticket to Flight;
+    ReturnFlight(FlightRes) from Flight to Ticket;
+    AddUserToFlight(Long, Long, Int) from Ticket to Flight;
+    AddUserMileToUser(Long, Long, Int) from Ticket to User;
+}

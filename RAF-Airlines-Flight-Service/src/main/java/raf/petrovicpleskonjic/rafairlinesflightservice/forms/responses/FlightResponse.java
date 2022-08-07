@@ -15,20 +15,20 @@ public class FlightResponse {
 
 	private Boolean full;
 
-	private Airplane airplane;
+	private Long airplaneId;
 
 	public FlightResponse() {
 	}
 
 	public FlightResponse(long flightId, Integer distance, Float price, Boolean full, String startDestination,
-			String endDestination, Airplane airplane) {
+			String endDestination, Long airplaneId) {
 		this.flightId = flightId;
 		this.distance = distance;
 		this.price = price;
 		this.full = full;
 		this.startDestination = startDestination;
 		this.endDestination = endDestination;
-		this.airplane = airplane;
+		this.airplaneId = airplaneId;
 	}
 
 	public long getFlightId() {
@@ -63,12 +63,12 @@ public class FlightResponse {
 		this.full = full;
 	}
 
-	public Airplane getAirplane() {
-		return airplane;
+	public Long getAirplaneId() {
+		return airplaneId;
 	}
 
-	public void setAirplane(Airplane airplane) {
-		this.airplane = airplane;
+	public void setAirplaneId(Long airplaneId) {
+		this.airplaneId = airplaneId;
 	}
 
 	public String getStartDestination() {

@@ -1,6 +1,5 @@
 package raf.petrovicpleskonjic.rafairlinesuserservice.consumer;
 
-import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,25 +8,21 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import raf.petrovicpleskonjic.rafairlinesuserservice.EmailService;
+import raf.petrovicpleskonjic.rafairlinesuserservice.utils.EmailService;
 import raf.petrovicpleskonjic.rafairlinesuserservice.messages.FlightAssignedMessage;
 import raf.petrovicpleskonjic.rafairlinesuserservice.messages.FlightDeletedMessage;
-import raf.petrovicpleskonjic.rafairlinesuserservice.models.Tier;
 import raf.petrovicpleskonjic.rafairlinesuserservice.models.User;
-import raf.petrovicpleskonjic.rafairlinesuserservice.repositories.TierRepository;
 import raf.petrovicpleskonjic.rafairlinesuserservice.repositories.UserRepository;
 
 @Component
 public class ActiveMQConsumer {
 
 	private EmailService emailService;
-	private TierRepository tierRepo;
 	private UserRepository userRepo;
 
 	@Autowired
-	public ActiveMQConsumer(EmailService emailService, TierRepository tierRepo, UserRepository userRepo) {
+	public ActiveMQConsumer(EmailService emailService, UserRepository userRepo) {
 		this.emailService = emailService;
-		this.tierRepo = tierRepo;
 		this.userRepo = userRepo;
 	}
 
@@ -42,16 +37,6 @@ public class ActiveMQConsumer {
 
 			user.get().setMiles(user.get().getMiles() - message.getDistance());
 
-			List<Tier> tiers = tierRepo.findAll();
-			Tier newTier = null;
-
-			for (Tier tier : tiers) {
-				if (user.get().getMiles() >= tier.getThreshold())
-					if (newTier == null || newTier.getThreshold() < tier.getThreshold())
-						newTier = tier;
-			}
-
-			user.get().setTier(newTier);
 			userRepo.save(user.get());
 
 			StringBuilder body = new StringBuilder();
@@ -83,16 +68,6 @@ public class ActiveMQConsumer {
 
 			user.get().setMiles(user.get().getMiles() + message.getDistance());
 
-			List<Tier> tiers = tierRepo.findAll();
-			Tier newTier = null;
-
-			for (Tier tier : tiers) {
-				if (user.get().getMiles() > tier.getThreshold())
-					if (newTier == null || newTier.getThreshold() < tier.getThreshold())
-						newTier = tier;
-			}
-
-			user.get().setTier(newTier);
 			userRepo.save(user.get());
 		} catch (Exception e) {
 			e.printStackTrace();

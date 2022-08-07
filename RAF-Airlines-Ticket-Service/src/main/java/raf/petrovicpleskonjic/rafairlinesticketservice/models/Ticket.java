@@ -38,15 +38,7 @@ public class Ticket {
 		this.flight = flight;
 	}
 
-	public Passenger getPassenger() {
-		return passenger;
-	}
-
-	public void setPassenger(Passenger passenger) {
-		this.passenger = passenger;
-	}
-
-	public Flight getFlight() {
+    public Flight getFlight() {
 		return flight;
 	}
 

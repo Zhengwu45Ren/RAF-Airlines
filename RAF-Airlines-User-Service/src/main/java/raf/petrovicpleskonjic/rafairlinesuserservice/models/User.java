@@ -33,9 +33,6 @@ public class User {
 	@Column(unique = true)
 	private String passport;
 	
-	@ManyToOne
-	private Tier tier;
-	
 	@OneToMany(mappedBy = "owner")
 	private List<CreditCard> creditCards;
 	
@@ -104,14 +101,6 @@ public class User {
 	
 	public void setPassport(String passport) {
 		this.passport = passport;
-	}
-	
-	public Tier getTier() {
-		return tier;
-	}
-	
-	public void setTier(Tier tier) {
-		this.tier = tier;
 	}
 	
 }

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/RAF-Airlines.iml" filepath="$PROJECT_DIR$/.idea/RAF-Airlines.iml" />
+      <module fileurl="file://$PROJECT_DIR$/RAF-Airlines-Eureka-Server/raf-airlines-eureka-server.iml" filepath="$PROJECT_DIR$/RAF-Airlines-Eureka-Server/raf-airlines-eureka-server.iml" />
+      <module fileurl="file://$PROJECT_DIR$/RAF-Airlines-Flight-Service/raf-airlines-flight-service.iml" filepath="$PROJECT_DIR$/RAF-Airlines-Flight-Service/raf-airlines-flight-service.iml" />
+      <module fileurl="file://$PROJECT_DIR$/RAF-Airlines-Ticket-Service/raf-airlines-ticket-service.iml" filepath="$PROJECT_DIR$/RAF-Airlines-Ticket-Service/raf-airlines-ticket-service.iml" />
+      <module fileurl="file://$PROJECT_DIR$/RAF-Airlines-User-Service/raf-airlines-user-service.iml" filepath="$PROJECT_DIR$/RAF-Airlines-User-Service/raf-airlines-user-service.iml" />
+      <module fileurl="file://$PROJECT_DIR$/RAF-Airlines-Zuul-Gateway-Service/raf-airlines-zuul-gateway-service.iml" filepath="$PROJECT_DIR$/RAF-Airlines-Zuul-Gateway-Service/raf-airlines-zuul-gateway-service.iml" />
+    </modules>
+  </component>
+</project>

@@ -17,15 +17,16 @@ public class RafAirlinesUserServiceApplication {
 	@Bean
 	public JavaMailSender getJavaMailSender() {
 	    JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
-	    mailSender.setHost("smtp.gmail.com");
-	    mailSender.setPort(587);
+	    mailSender.setHost("smtp.126.com");
+	    mailSender.setPort(465);
 	    
-	    mailSender.setUsername("raf.airlines@gmail.com");
-	    mailSender.setPassword("rafairlinessk20");
+	    mailSender.setUsername("airlinems@126.com");
+	    mailSender.setPassword("RIWMDQLJQTDWXDKC");
 	    
 	    Properties props = mailSender.getJavaMailProperties();
 	    props.put("mail.transport.protocol", "smtp");
 	    props.put("mail.smtp.auth", "true");
+		props.put("mail.smtp.ssl.enable","true");
 	    props.put("mail.smtp.starttls.enable", "true");
 	    props.put("mail.debug", "true");
 	    

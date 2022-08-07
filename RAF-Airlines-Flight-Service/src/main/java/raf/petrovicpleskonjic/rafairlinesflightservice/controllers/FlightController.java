@@ -58,55 +58,11 @@ public class FlightController {
 	}
 
 	@GetMapping("/all")
-	public ResponseEntity<List<Flight>> getAllFlights(@RequestHeader(value = "Authorization") String token) {
+	public ResponseEntity<List<Flight>> getAllFlights() {
 		try {
-			ResponseEntity<Boolean> isAdmin = UtilityMethods.sendGet(Boolean.class,
-					UtilityMethods.USER_SERVICE_URL + "admin-verification", token);
-
-			if (!isAdmin.getBody())
-				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-
 			List<Flight> flights = flightRepo.findAll();
 
 			return new ResponseEntity<>(flights, HttpStatus.ACCEPTED);
-		} catch (Exception e) {
-			e.printStackTrace();
-
-			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-		}
-	}
-
-	@GetMapping("/available")
-	public ResponseEntity<List<Flight>> getAvailableFlights(@RequestParam int page,
-			@RequestHeader(value = "Authorization") String token) {
-		try {			
-			UriComponentsBuilder builder = UriComponentsBuilder
-					.fromHttpUrl(UtilityMethods.USER_SERVICE_URL + "my-profile");
-
-			ResponseEntity<UserProfileResponse> response = UtilityMethods.sendGet(UserProfileResponse.class,
-					builder.toUriString(), token);
-
-			if (response.getBody() == null)
-				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-			
-			List<Flight> flights = flightRepo.getAvailableFlights();
-			ListIterator<Flight> iter = flights.listIterator();
-			while (iter.hasNext()) {
-				Flight flight = iter.next();
-				for (Passenger passenger : flight.getPassengers()) {
-					if (passenger.getPassengerId() == response.getBody().getUserId())
-						iter.remove();
-				}
-			}
-
-			Integer pageSize = 2;
-			Integer fromIndex = (page - 1) * pageSize;
-
-			if (flights.size() <= fromIndex)
-				return new ResponseEntity<>(Collections.emptyList(), HttpStatus.ACCEPTED);
-
-			return new ResponseEntity<>(flights.subList(fromIndex, Math.min(fromIndex + pageSize, flights.size())),
-					HttpStatus.ACCEPTED);
 		} catch (Exception e) {
 			e.printStackTrace();
 
@@ -126,7 +82,7 @@ public class FlightController {
 
 			return new ResponseEntity<>(new FlightResponse(flightId, flight.get().getDistance(),
 					flight.get().getPrice(), isFull, flight.get().getStartDestination(),
-					flight.get().getEndDestination(), flight.get().getAirplane()), HttpStatus.ACCEPTED);
+					flight.get().getEndDestination(), flight.get().getAirplane().getAirplaneId()), HttpStatus.ACCEPTED);
 		} catch (Exception e) {
 			e.printStackTrace();
 
@@ -150,15 +106,8 @@ public class FlightController {
 	}
 
 	@PostMapping("/add")
-	public ResponseEntity<Flight> addFlight(@RequestBody NewFlightRequest request,
-			@RequestHeader(value = "Authorization") String token) {
+	public ResponseEntity<Flight> addFlight(@RequestBody NewFlightRequest request) {
 		try {
-			ResponseEntity<Boolean> isAdmin = UtilityMethods.sendGet(Boolean.class,
-					UtilityMethods.USER_SERVICE_URL + "admin-verification", token);
-
-			if (!isAdmin.getBody())
-				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-
 			Optional<Airplane> airplane = airplaneRepo.findById(request.getAirplaneId());
 			if (!airplane.isPresent())
 				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
@@ -176,15 +125,8 @@ public class FlightController {
 	}
 
 	@DeleteMapping("/delete")
-	public ResponseEntity<Void> deleteFlight(@RequestParam Long flightId,
-			@RequestHeader(value = "Authorization") String token) {
+	public ResponseEntity<Void> deleteFlight(@RequestParam Long flightId) {
 		try {
-			ResponseEntity<Boolean> isAdmin = UtilityMethods.sendGet(Boolean.class,
-					UtilityMethods.USER_SERVICE_URL + "admin-verification", token);
-
-			if (!isAdmin.getBody())
-				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-
 			Optional<Flight> flight = flightRepo.findById(flightId);
 			if (!flight.isPresent())
 				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);

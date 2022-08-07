@@ -1,6 +1,8 @@
 package raf.petrovicpleskonjic.rafairlinesticketservice.forms.responses;
 
-public class FlightResponse {
+import java.io.Serializable;
+
+public class FlightResponse implements Serializable {
 
 	private long flightId;
 	
@@ -13,16 +15,16 @@ public class FlightResponse {
 	
 	private Boolean full;
 	
-	private AirplaneResponse airplane;
+	private Long airplaneId;
 	
 	public FlightResponse() {}
 	
-	public FlightResponse(long flightId, Integer distance, Float price, Boolean full, String startDestination, String endDestination, AirplaneResponse airplane) {
+	public FlightResponse(long flightId, Integer distance, Float price, Boolean full, String startDestination, String endDestination, Long airplaneId) {
 		this(flightId, distance, price, full);
 		
 		this.startDestination = startDestination;
 		this.endDestination = endDestination;
-		this.airplane = airplane;
+		this.airplaneId = airplaneId;
 	}
 
 	public FlightResponse(long flightId, Integer distance, Float price, Boolean full) {
@@ -64,12 +66,12 @@ public class FlightResponse {
 		this.full = full;
 	}
 	
-	public AirplaneResponse getAirplane() {
-		return airplane;
+	public Long getAirplaneId() {
+		return airplaneId;
 	}
 	
-	public void setAirplane(AirplaneResponse airplane) {
-		this.airplane = airplane;
+	public void setAirplaneId(Long airplaneId) {
+		this.airplaneId = airplaneId;
 	}
 	
 	public String getStartDestination() {

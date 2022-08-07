@@ -32,7 +32,7 @@ public class AirplaneController {
 	}
 	
 	@GetMapping("/all")
-	public ResponseEntity<List<Airplane>> allAirplanes(@RequestHeader(value = "Authorization") String token) {
+	public ResponseEntity<List<Airplane>> allAirplanes() {
 		try {
 			List<Airplane> airplanes = airplaneRepo.findAll();
 			
@@ -43,15 +43,8 @@ public class AirplaneController {
 	}
 
 	@PostMapping("/add")
-	public ResponseEntity<Airplane> addAirplane(@RequestBody NewAirplaneRequest request,
-			@RequestHeader(value = "Authorization") String token) {
+	public ResponseEntity<Airplane> addAirplane(@RequestBody NewAirplaneRequest request) {
 		try {
-			ResponseEntity<Boolean> isAdmin = UtilityMethods.sendGet(Boolean.class,
-					UtilityMethods.USER_SERVICE_URL + "admin-verification", token);
-
-			if (!isAdmin.getBody())
-				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-			
 			Airplane airplane = new Airplane(request.getName(), request.getCapacity());
 			airplaneRepo.saveAndFlush(airplane);
 
@@ -63,15 +56,8 @@ public class AirplaneController {
 	}
 
 	@DeleteMapping("/remove")
-	public ResponseEntity<Void> removeAirplane(@RequestParam Long airplaneId,
-			@RequestHeader(value = "Authorization") String token) {
+	public ResponseEntity<Void> removeAirplane(@RequestParam Long airplaneId) {
 		try {
-			ResponseEntity<Boolean> isAdmin = UtilityMethods.sendGet(Boolean.class,
-					UtilityMethods.USER_SERVICE_URL + "admin-verification", token);
-
-			if (!isAdmin.getBody())
-				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-			
 			Optional<Airplane> airplane = airplaneRepo.findById(airplaneId);
 			if (!airplane.isPresent() || !airplane.get().getFlights().isEmpty())
 				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);

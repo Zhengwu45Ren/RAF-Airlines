@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="MavenProjectsManager">
+    <option name="originalFiles">
+      <list>
+        <option value="$PROJECT_DIR$/RAF-Airlines-Eureka-Server/pom.xml" />
+        <option value="$PROJECT_DIR$/RAF-Airlines-Zuul-Gateway-Service/pom.xml" />
+        <option value="$PROJECT_DIR$/RAF-Airlines-Ticket-Service/pom.xml" />
+        <option value="$PROJECT_DIR$/RAF-Airlines-User-Service/pom.xml" />
+        <option value="$PROJECT_DIR$/RAF-Airlines-Flight-Service/pom.xml" />
+      </list>
+    </option>
+  </component>
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_1_8" project-jdk-name="11" project-jdk-type="JavaSDK" />
+  <component name="ProjectType">
+    <option name="id" value="jpab" />
+  </component>
+</project>

@@ -7,14 +7,11 @@ import static raf.petrovicpleskonjic.rafairlinesuserservice.security.SecurityCon
 import static raf.petrovicpleskonjic.rafairlinesuserservice.security.SecurityConstants.TOKEN_PREFIX;
 
 import java.util.Date;
-import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -27,14 +24,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.auth0.jwt.JWT;
 
-import raf.petrovicpleskonjic.rafairlinesuserservice.EmailService;
-import raf.petrovicpleskonjic.rafairlinesuserservice.UtilityMethods;
+import raf.petrovicpleskonjic.rafairlinesuserservice.utils.EmailService;
+import raf.petrovicpleskonjic.rafairlinesuserservice.utils.UtilityMethods;
 import raf.petrovicpleskonjic.rafairlinesuserservice.forms.requests.user.RegistrationRequest;
 import raf.petrovicpleskonjic.rafairlinesuserservice.forms.requests.user.UpdatePasswordRequest;
 import raf.petrovicpleskonjic.rafairlinesuserservice.forms.requests.user.UpdateRequest;
-import raf.petrovicpleskonjic.rafairlinesuserservice.models.Tier;
 import raf.petrovicpleskonjic.rafairlinesuserservice.models.User;
-import raf.petrovicpleskonjic.rafairlinesuserservice.repositories.TierRepository;
 import raf.petrovicpleskonjic.rafairlinesuserservice.repositories.UserRepository;
 
 @RestController
@@ -44,39 +39,16 @@ public class UserController {
 	private EmailService emailService;
 	private BCryptPasswordEncoder encoder;
 	private UserRepository userRepo;
-	private TierRepository tierRepo;
-
 	@Autowired
-	public UserController(EmailService emailService, BCryptPasswordEncoder encoder, UserRepository userRepo,
-			TierRepository tierRepo) {
+	public UserController(EmailService emailService, BCryptPasswordEncoder encoder, UserRepository userRepo) {
 		this.emailService = emailService;
 		this.encoder = encoder;
 		this.userRepo = userRepo;
-		this.tierRepo = tierRepo;
-	}
-
-	@GetMapping("/admin-verification")
-	public ResponseEntity<Boolean> getProfile(Authentication authentication) {
-		boolean isAdmin = false;
-		for (GrantedAuthority a : authentication.getAuthorities())
-			if (a.getAuthority().equals("ROLE_ADMIN"))
-				isAdmin = true;
-
-		return new ResponseEntity<>(isAdmin, HttpStatus.ACCEPTED);
-
 	}
 
 	@GetMapping("/profile-by-id")
-	public ResponseEntity<User> getUserById(Authentication authentication, @RequestParam long userId) {
+	public ResponseEntity<User> getUserById(@RequestParam long userId) {
 		try {
-			boolean isAdmin = false;
-			for (GrantedAuthority a : authentication.getAuthorities())
-				if (a.getAuthority().equals("ROLE_ADMIN"))
-					isAdmin = true;
-
-			if (!isAdmin)
-				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-
 			Optional<User> user = userRepo.findById(userId);
 			if (!user.isPresent())
 				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
@@ -89,9 +61,9 @@ public class UserController {
 	}
 
 	@GetMapping("/my-profile")
-	public ResponseEntity<User> getUserById(Authentication authentication) {
+	public ResponseEntity<User> getUserByEmail(@RequestHeader(value = "Authorization") String email) {
 		try {
-			User user = userRepo.findByEmail(authentication.getName());
+			User user = userRepo.findByEmail(email);
 
 			if (user == null)
 				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
@@ -109,15 +81,6 @@ public class UserController {
 		try {
 			User user = new User(0, request.getName(), request.getSurname(), request.getEmail(),
 					encoder.encode(request.getPassword()), request.getPassport());
-			
-			List<Tier> tiers = tierRepo.findAll();
-
-			for (Tier tier : tiers) {
-				if (tier.getThreshold() == 0) {
-					user.setTier(tier);
-					break;
-				}
-			}
 
 			userRepo.saveAndFlush(user);
 
@@ -146,7 +109,7 @@ public class UserController {
 			@RequestHeader(value = HEADER_STRING) String token) {
 		try {
 
-			User user = userRepo.findByEmail(UtilityMethods.getUsernameFromToken(token));
+			User user = userRepo.findByEmail(token);
 			if (user == null)
 				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 
@@ -182,7 +145,7 @@ public class UserController {
 			@RequestHeader(value = HEADER_STRING) String token) {
 		try {
 
-			User user = userRepo.findByEmail(UtilityMethods.getUsernameFromToken(token));
+			User user = userRepo.findByEmail(token);
 			if (user == null)
 				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 			

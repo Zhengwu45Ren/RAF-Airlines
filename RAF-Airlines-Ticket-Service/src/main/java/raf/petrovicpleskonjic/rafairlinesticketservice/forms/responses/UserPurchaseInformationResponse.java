@@ -3,16 +3,13 @@ package raf.petrovicpleskonjic.rafairlinesticketservice.forms.responses;
 public class UserPurchaseInformationResponse {
 
 	private long userId;
-	
-	private Float salePercentage;
 
 	private String creditCardNumber;
 	
 	public UserPurchaseInformationResponse() {}
 
-	public UserPurchaseInformationResponse(long userId, Float salePercentage, String creditCardNumber) {
+	public UserPurchaseInformationResponse(long userId, String creditCardNumber) {
 		this.userId = userId;
-		this.salePercentage = salePercentage;
 		this.creditCardNumber = creditCardNumber;
 	}
 
@@ -22,14 +19,6 @@ public class UserPurchaseInformationResponse {
 
 	public void setUserId(long userId) {
 		this.userId = userId;
-	}
-
-	public Float getSalePercentage() {
-		return salePercentage;
-	}
-
-	public void setSalePercentage(Float salePercentage) {
-		this.salePercentage = salePercentage;
 	}
 
 	public String getCreditCardNumber() {
