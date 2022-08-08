@@ -4,6 +4,9 @@ import javax.jms.Connection;
 import javax.jms.JMSException;
 import javax.jms.Queue;
 
+import air.buyTicketError.roles.F;
+import air.buyTicketError.roles.T;
+import air.buyTicketError.roles.U;
 import airline.buyTicket.roles.Flight;
 import airline.buyTicket.roles.Ticket;
 import airline.buyTicket.roles.User;
@@ -54,6 +57,22 @@ public class ActiveMQConfiguration {
 			MSEndpoint<Ticket> msEndpoint = new MSEndpoint<>(Ticket.Ticket, connection);
 			msEndpoint.connect(Flight.Flight);
 			msEndpoint.connect(User.User);
+			return msEndpoint;
+		} catch (JMSException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@Bean
+	public MSEndpoint<T> msEndpointT(){
+		try {
+			activeMQConnectionFactory().setTrustAllPackages(true);
+			Connection connection = activeMQConnectionFactory().createConnection();
+			connection.start();
+
+			MSEndpoint<T> msEndpoint = new MSEndpoint<>(T.T, connection);
+			msEndpoint.connect(U.U);
+			msEndpoint.connect(F.F);
 			return msEndpoint;
 		} catch (JMSException e) {
 			throw new RuntimeException(e);

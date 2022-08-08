@@ -14,7 +14,7 @@ type <java> "java.lang.String" from "rt.jar" as String;
 type <java> "java.lang.Long" from "rt.jar" as Long;
 type <java> "raf.petrovicpleskonjic.rafairlinesticketservice.forms.responses.FlightResponse" from "" as FlightRes;
 
-
+/*
 global protocol buyTicket(role Ticket, role Flight, role User){
     GetUser(String) from Ticket to User;
     ReturnUser(Long, String) from User to Ticket;
@@ -23,3 +23,24 @@ global protocol buyTicket(role Ticket, role Flight, role User){
     AddUserToFlight(Long, Long, Int) from Ticket to Flight;
     AddUserMileToUser(Long, Long, Int) from Ticket to User;
 }
+*/
+
+global protocol buyTicket(role Ticket, role Flight, role User){
+    GetUser(String) from Ticket to User;
+    choice at User{
+        ReturnUser(Long, String) from User to Ticket;
+        GetFlight(Long) from Ticket to Flight;
+        choice at Flight{
+            ReturnFlight(FlightRes) from Flight to Ticket;
+            AddUserToFlight(Long, Long, Int) from Ticket to Flight;
+            AddUserMileToUser(Long, Long, Int) from Ticket to User;
+        } or {
+            Error(String) from Flight to Ticket;
+            Error(String) from Ticket to User;
+        }
+    } or {
+        Error(String) from User to Ticket;
+        Error(String) from Ticket to Flight;
+    }
+}
+

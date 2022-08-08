@@ -1,0 +1,26 @@
+module air;
+
+type <java> "java.lang.Integer" from "rt.jar" as Int;
+type <java> "java.lang.String" from "rt.jar" as String;
+type <java> "java.lang.Long" from "rt.jar" as Long;
+type <java> "raf.petrovicpleskonjic.rafairlinesticketservice.forms.responses.FlightResponse" from "" as FlightRes;
+
+
+global protocol buyTicketError(role T, role F, role U){
+    GetU(String) from T to U;
+    choice at U{
+        ReturnU(Long, String) from U to T;
+        GetF(Long) from T to F;
+        choice at F{
+            ReturnF(FlightRes) from F to T;
+            AddUToF(Long, Long, Int) from T to F;
+            AddUMileToU(Long, Long, Int) from T to U;
+        } or {
+            ErrorThrow(String) from F to T;
+            ErrorThrow(String) from T to U;
+        }
+    } or {
+        ErrorThrow(String) from U to T;
+        ErrorThrow(String) from T to F;
+    }
+}

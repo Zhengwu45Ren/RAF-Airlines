@@ -8,10 +8,18 @@ import java.util.List;
 import javax.jms.Connection;
 import javax.jms.Queue;
 
+import air.buyTicketError.ms.T.ioifaces.MSBranch_T_U_ErrorThrow_String__U_ReturnU_Long_String;
 import airline.buyTicket.ms.Ticket.*;
-import airline.buyTicket.ops.*;
+import airline.buyTicket.ops.AddUserMileToUser;
+import airline.buyTicket.ops.AddUserToFlight;
+import airline.buyTicket.ops.GetFlight;
+import airline.buyTicket.ops.GetUser;
+import airline.buyTicket.ops.ReturnFlight;
+import airline.buyTicket.ops.ReturnUser;
 import airline.buyTicket.roles.User;
-import org.apache.activemq.ActiveMQConnectionFactory;
+import air.buyTicketError.ms.T.*;
+import air.buyTicketError.ops.*;
+import air.buyTicketError.roles.*;
 import org.scribble.runtime.session.MSEndpoint;
 import org.scribble.runtime.util.Buf;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,6 +70,9 @@ public class Controller {
 
 	@Autowired
 	MSEndpoint<airline.buyTicket.roles.Ticket> msEndpoint;
+
+	@Autowired
+	MSEndpoint<T> msEndpointT;
 
 	@Autowired
 	public Controller(PassengerRepository passengerRepo, TicketRepository ticketRepo, FlightRepository flightRepo) {
@@ -242,6 +253,68 @@ public class Controller {
 		} catch (Exception e) {
 			e.printStackTrace();
 
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		}
+	}
+
+	@PostMapping("/buy-ticket-ms-error")
+	public ResponseEntity buyTicketMSError(@RequestBody NewTicketRequest request,
+													  @RequestHeader(value = "Authorization") String token) {
+		try {
+			Buf<Long> longBuf = new Buf<>();
+			Buf<String> stringBuf = new Buf<>();
+			Buf<FlightResponse> responseBuf = new Buf<>();
+
+			buyTicketErrorT1MS buyTicketErrorT1MS = new buyTicketErrorT1MS(msEndpointT);
+			buyTicketErrorT2MS buyTicketErrorT2MS =
+					buyTicketErrorT1MS.send(U.U, GetU.GetU, token);
+			buyTicketErrorT2MSCases buyTicketErrorT2MSCases =
+					buyTicketErrorT2MS.branch(U.U);
+			switch (buyTicketErrorT2MSCases.op){
+				case ReturnU: {
+					buyTicketErrorT3MS buyTicketErrorT3MS = buyTicketErrorT2MSCases.receive(U.U, ReturnU.ReturnU, longBuf, stringBuf);
+					if (longBuf.val == null || stringBuf.val == null) {
+						System.out.println("Wrong");
+						return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+					}
+					Passenger passenger;
+					if (passengerRepo.existsById(longBuf.val))
+						passenger = passengerRepo.findById(longBuf.val).get();
+					else
+						passenger = passengerRepo.save(new Passenger(longBuf.val));
+					buyTicketErrorT4MS buyTicketErrorT4MS = buyTicketErrorT3MS.send(F.F, GetF.GetF, request.getFlightId());
+					buyTicketErrorT4MSCases buyTicketErrorT4MSCases = buyTicketErrorT4MS.branch(F.F);
+					switch (buyTicketErrorT4MSCases.op){
+						case ReturnF:{
+							buyTicketErrorT5MS buyTicketErrorT5MS = buyTicketErrorT4MSCases.receive(ReturnF.ReturnF, responseBuf);
+							if (responseBuf.val == null || responseBuf.val.isFull())
+								return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+							Float totalAmountToPay = responseBuf.val.getPrice();
+							System.out.println("Requesting " + totalAmountToPay + " funds for passenger " + stringBuf.val);
+							Flight flight = flightRepo.save(new Flight(responseBuf.val.getFlightId()));
+							Ticket ticket = ticketRepo.save(new Ticket(passenger, flight));
+
+							buyTicketErrorT6MS buyTicketErrorT6MS = buyTicketErrorT5MS.send(F.F, AddUToF.AddUToF, passenger.getPassengerId(), request.getFlightId(), responseBuf.val.getDistance());
+							buyTicketErrorT6MS.send(U.U, AddUMileToU.AddUMileToU, passenger.getPassengerId(), request.getFlightId(), responseBuf.val.getDistance());
+							return new ResponseEntity<>(new TicketResponse(ticket.getTicketId(), responseBuf.val, ticket.getDayBought(), false), HttpStatus.ACCEPTED);
+						}
+						case ErrorThrow:{
+							buyTicketErrorT7MS buyTicketErrorT7MS = buyTicketErrorT4MSCases.receive(ErrorThrow.ErrorThrow, stringBuf);
+							buyTicketErrorT7MS.send(U.U, ErrorThrow.ErrorThrow, stringBuf.val);
+							return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(stringBuf.val);
+						}
+					}
+					break;
+				}
+				case ErrorThrow: {
+					buyTicketErrorT8MS buyTicketErrorT8MS = buyTicketErrorT2MSCases.receive(U.U, ErrorThrow.ErrorThrow, stringBuf);
+					buyTicketErrorT8MS.send(F.F, ErrorThrow.ErrorThrow, stringBuf.val);
+					return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(stringBuf.val);
+				}
+			}
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		} catch (Exception e) {
+			e.printStackTrace();
 			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 		}
 	}

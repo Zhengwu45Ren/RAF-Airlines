@@ -10,8 +10,6 @@ import org.hibernate.Hibernate;
 import org.scribble.runtime.session.MSEndpoint;
 import org.scribble.runtime.util.Buf;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import raf.petrovicpleskonjic.rafairlinesflightservice.models.Passenger;
 import raf.petrovicpleskonjic.rafairlinesflightservice.repositories.FlightRepository;
@@ -22,7 +20,7 @@ import javax.annotation.PostConstruct;
 import java.util.Optional;
 
 @Component
-public class flightService {
+public class FlightService {
     @Autowired
     MSEndpoint<Flight> msEndpoint;
 
